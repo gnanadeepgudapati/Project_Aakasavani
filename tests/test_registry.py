@@ -1,7 +1,9 @@
 """Step 01 acceptance tests. REQUIREMENTS.md R-020..R-023.
 
-No network here - this only reads data/feeds.yaml, which
-scripts/audit_feeds.py (the one network-touching step) writes to.
+Step 23 (plans/23-feed-registry-sync-poll-hardening.md) adds
+sync_feeds_to_db - R-089, R-090. No network here - this only reads
+data/feeds.yaml, which scripts/audit_feeds.py (the one network-touching
+step) writes to.
 """
 
 import re
@@ -9,7 +11,7 @@ import re
 import yaml
 
 from app.config import SECTIONS
-from app.registry import load_feeds
+from app.registry import load_feeds, sync_feeds_to_db
 
 SOURCES_MD = "docs/SOURCES.md"
 
@@ -81,3 +83,56 @@ def test_no_google_news_redirect_sources():
     feeds = load_feeds()
     for f in feeds:
         assert "news.google.com" not in f["url"], f["url"]
+
+
+def test_sync_inserts_every_yaml_feed(db_conn):
+    """R-089. D-1 (logs/SESSIONS.md, plans/00b-real-data-and-ui-plan.md):
+    nothing wrote feeds.yaml into the `feeds` table at all - poll_all_feeds
+    iterated an empty table on every real run, silently."""
+    sync_feeds_to_db(db_conn)
+
+    count = db_conn.execute("SELECT COUNT(*) FROM feeds").fetchone()[0]
+    assert count == 35
+
+    row = db_conn.execute(
+        "SELECT name, section, source_weight, has_full_text, enabled, fail_count "
+        "FROM feeds WHERE url = 'https://techcrunch.com/feed/'"
+    ).fetchone()
+    assert row is not None
+    assert row["name"] == "TechCrunch"
+    assert row["section"] == "tech"
+    assert row["enabled"] == 1
+    assert row["fail_count"] == 0
+
+
+def test_sync_preserves_poll_state_on_existing_rows(db_conn):
+    """R-090. A naive DELETE+INSERT would discard every row's etag/
+    last_modified/fail_count/enabled on every sync - throwing away 30 days
+    of conditional-GET state and un-disabling every feed that had earned
+    enabled=0 the hard way. Also proves idempotency: syncing twice with
+    unchanged YAML changes nothing on the second pass."""
+    sync_feeds_to_db(db_conn)
+
+    url = "https://techcrunch.com/feed/"
+    db_conn.execute(
+        "UPDATE feeds SET etag = 'W/\"abc123\"', last_modified = 'Mon, 01 Jan 2026 00:00:00 GMT', "
+        "fail_count = 7, enabled = 0, last_polled = 1234567890 WHERE url = ?",
+        (url,),
+    )
+    db_conn.commit()
+
+    result = sync_feeds_to_db(db_conn)  # second sync - must not clobber the state just set
+    assert result["inserted"] == 0, "no new URLs on a re-sync of the same YAML"
+
+    row = db_conn.execute(
+        "SELECT etag, last_modified, fail_count, enabled, last_polled FROM feeds WHERE url = ?",
+        (url,),
+    ).fetchone()
+    assert row["etag"] == 'W/"abc123"'
+    assert row["last_modified"] == "Mon, 01 Jan 2026 00:00:00 GMT"
+    assert row["fail_count"] == 7
+    assert row["enabled"] == 0
+    assert row["last_polled"] == 1234567890
+
+    count = db_conn.execute("SELECT COUNT(*) FROM feeds").fetchone()[0]
+    assert count == 35, "re-sync must not create duplicate rows"

@@ -1,6 +1,13 @@
-"""Step 18 acceptance tests. REQUIREMENTS.md R-086..R-087."""
+"""Step 18 acceptance tests. REQUIREMENTS.md R-086..R-087.
+
+Step 23 (plans/23-feed-registry-sync-poll-hardening.md) changed
+poll_all_feeds' fetch_fn contract to fetch_fn(url, etag, last_modified) ->
+FeedFetchResult (conditional GET, D-4) - both fixtures below updated to
+match, same assertions as before.
+"""
 
 from app.jobs.topup import run_topup
+from app.net.fetcher import FeedFetchResult
 
 
 def _feed_xml(items):
@@ -20,8 +27,8 @@ def test_headlines_only(db_conn):
     )
     db_conn.commit()
 
-    def fetch_fn(url):
-        return _feed_xml(["Headline One", "Headline Two"])
+    def fetch_fn(url, etag, last_modified):
+        return FeedFetchResult(status=200, body=_feed_xml(["Headline One", "Headline Two"]))
 
     inserted = run_topup(db_conn, fetch_fn=fetch_fn)
     assert inserted == 2
@@ -45,7 +52,7 @@ def test_does_not_rebuild_edition(db_conn):
     editions_before = db_conn.execute("SELECT COUNT(*) FROM editions").fetchone()[0]
     edition_items_before = db_conn.execute("SELECT COUNT(*) FROM edition_items").fetchone()[0]
 
-    run_topup(db_conn, fetch_fn=lambda url: _feed_xml(["A New Headline"]))
+    run_topup(db_conn, fetch_fn=lambda url, etag, lm: FeedFetchResult(status=200, body=_feed_xml(["A New Headline"])))
 
     editions_after = db_conn.execute("SELECT COUNT(*) FROM editions").fetchone()[0]
     edition_items_after = db_conn.execute("SELECT COUNT(*) FROM edition_items").fetchone()[0]

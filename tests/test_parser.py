@@ -1,10 +1,14 @@
-"""Step 06 acceptance tests. REQUIREMENTS.md R-042..R-049."""
+"""Step 06 acceptance tests. REQUIREMENTS.md R-042..R-049.
+
+Step 24 (plans/24-fetcher-wiring-metadata.md) adds extract_og_image -
+R-101 (partial, D-7).
+"""
 
 from pathlib import Path
 
 from app.ingest.canonical import canonicalize, url_hash
 from app.ingest.dedupe import insert_if_new
-from app.ingest.parser import parse_feed, resolve_description
+from app.ingest.parser import extract_og_image, parse_feed, resolve_description
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
@@ -115,3 +119,18 @@ def test_description_fallback_order():
     # tier 5: headline alone, nothing else available
     e5 = FakeEntry(title="Just The Headline")
     assert resolve_description(e5) == "Just The Headline"
+
+
+def test_extract_og_image():
+    """R-101 (partial). D-7: EDITION-AND-UI.md §6 images - og:image
+    extracted from page bytes already fetched, no extra HTTP request."""
+    html = (
+        '<html><head><meta property="og:image" content="https://x.test/hero.jpg">'
+        "</head></html>"
+    )
+    assert extract_og_image(html) == "https://x.test/hero.jpg"
+
+    bytes_html = html.encode("utf-8")
+    assert extract_og_image(bytes_html) == "https://x.test/hero.jpg"
+
+    assert extract_og_image("<html><head></head></html>") is None

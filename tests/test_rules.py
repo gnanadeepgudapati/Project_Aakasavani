@@ -411,6 +411,102 @@ def test_no_evasion_dependencies():
     assert not present, f"bot-detection-evasion package(s) installed: {present}"
 
 
+def test_feed_polling_routes_through_shared_limiter(db_conn, monkeypatch):
+    """R-097. D-3 (logs/SESSIONS.md, plans/00b-real-data-and-ui-plan.md,
+    plans/23-feed-registry-sync-poll-hardening.md): poll_all_feeds used to
+    import _default_http_get directly, bypassing limiter.acquire() entirely
+    - a Rule 8 violation on the real path. test_all_fetches_go_through_
+    limiter (R-034, test_fetcher.py) only ever proved the ARTICLE-fetch
+    path was limited; nothing proved the FEED-poll path was.
+
+    Calls poll_all_feeds with NO fetch_fn injected - i.e. exercises its
+    real default (app.net.fetcher._default_feed_fetch) - monkeypatching
+    only the raw urllib.request.urlopen call. app.net.limiter.
+    default_limiter is the REAL module-level shared instance, merely
+    spied on, not a test double standing in for it."""
+    import urllib.request
+
+    import app.net.fetcher as fetcher_module
+    from app.edition.build import poll_all_feeds
+
+    calls = []
+    real_acquire = fetcher_module.default_limiter.acquire
+
+    def spy_acquire(domain):
+        calls.append(domain)
+        return real_acquire(domain)
+
+    monkeypatch.setattr(fetcher_module.default_limiter, "acquire", spy_acquire)
+
+    class FakeResponse:
+        status = 200
+        headers = {}
+
+        def read(self):
+            return b"<?xml version='1.0'?><rss><channel></channel></rss>"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=15: FakeResponse())
+
+    db_conn.execute(
+        "INSERT INTO feeds (url, name, section, source_weight, enabled) "
+        "VALUES ('https://spied-on-feed.test/feed', 'Spied', 'tech', 3, 1)"
+    )
+    db_conn.commit()
+
+    poll_all_feeds(db_conn)  # NO fetch_fn - exercises the real default wiring
+
+    assert "spied-on-feed.test" in calls, (
+        "poll_all_feeds' default fetch path must call the shared limiter"
+    )
+
+
+def test_real_build_path_respects_robots_txt(db_conn, monkeypatch):
+    """R-100. D-6 (logs/SESSIONS.md, plans/00b-real-data-and-ui-plan.md,
+    plans/24-fetcher-wiring-metadata.md): build.py's prefetch_front_page
+    used to construct a bare Fetcher(), leaving robots_cache=None - the
+    check was silently skipped on every real run even though the LOGIC was
+    correct and unit-tested (test_fetcher.py injects robots_cache=
+    directly; test_robots_disallow_blocks_fetch, R-035). Calls
+    prefetch_front_page with NO fetcher injected - app.edition.build's own
+    production default - and proves a robots.txt disallow still blocks the
+    fetch on that real path, not just in a hand-constructed test Fetcher."""
+    import urllib.request
+
+    import app.net.fetcher as fetcher_module
+    from app.edition.build import prefetch_front_page
+
+    monkeypatch.setattr(fetcher_module, "_default_robots_fetch", lambda domain: "User-agent: *\nDisallow: /")
+
+    def fail_if_called(req, timeout=15):
+        raise AssertionError("robots.txt disallow must block the fetch before any article request")
+
+    monkeypatch.setattr(urllib.request, "urlopen", fail_if_called)
+
+    db_conn.execute(
+        "INSERT INTO seen (url_hash, canonical_url, title, source, section, "
+        "published_at, description, first_seen, expires_at) VALUES "
+        "(?, 'https://real-build-path-blocked.test/story', 'T', 'S', 'tech', 1, 'D', 1, 999999999999)",
+        (b"\x50" * 32,),
+    )
+    db_conn.commit()
+    selection = {
+        "tech": db_conn.execute(
+            "SELECT * FROM seen WHERE url_hash = ?", (b"\x50" * 32,)
+        ).fetchall()
+    }
+
+    prefetch_front_page(db_conn, selection)  # NO fetcher injected - real production default
+
+    row = db_conn.execute("SELECT full_text FROM seen WHERE url_hash = ?", (b"\x50" * 32,)).fetchone()
+    assert row["full_text"] is None, "robots.txt disallow must have blocked the real default Fetcher too"
+
+
 # ─────────────────────────────────────────────────────────────────
 # Rule 9 · Log read_at and dwell_seconds from day one
 # ─────────────────────────────────────────────────────────────────

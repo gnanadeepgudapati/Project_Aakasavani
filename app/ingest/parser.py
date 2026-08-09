@@ -73,6 +73,17 @@ def _image_url(entry) -> str | None:
     return None
 
 
+def extract_og_image(page_html: bytes | str) -> str | None:
+    """D-7 (logs/SESSIONS.md, plans/24-fetcher-wiring-metadata.md):
+    EDITION-AND-UI.md §6 images. Called during pre-fetch on page bytes
+    already in hand (no extra HTTP request) when the feed shipped no
+    image_url of its own. Reuses _meta_content - the same tag-matching
+    logic already used for the og:description/twitter:description
+    fallback tiers, just a different property."""
+    html = page_html.decode("utf-8", errors="replace") if isinstance(page_html, bytes) else page_html
+    return _meta_content(html, "og:image", "property")
+
+
 def resolve_description(entry, page_html: bytes | str | None = None) -> str:
     """ARCHITECTURE.md §2.3 fallback chain:
     RSS description/summary -> og:description -> twitter:description ->

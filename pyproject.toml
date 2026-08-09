@@ -16,7 +16,14 @@ dev = ["pytest>=8.0", "ruff>=0.8", "httpx>=0.27"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+# tests/test_live.py is the ONE deliberate exception to "tests never touch
+# the network" (ARCHITECTURE.md §12.2, plans/25-entrypoints-and-live-
+# test.md step 25) - excluded from every automated run. Run it by hand
+# with: pytest tests/test_live.py --noconftest -v
+# (--noconftest is required so it does not inherit tests/conftest.py's
+# autouse network-blocking fixture, which exists for every OTHER test on
+# purpose.)
+addopts = "-ra --ignore=tests/test_live.py"
 
 [build-system]
 requires = ["setuptools>=68"]

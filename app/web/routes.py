@@ -9,14 +9,17 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from app import clock
 from app.config import SECTIONS
+from app.search import search_read
+from app.topics import add_topic, list_topics, match_topic
 from app.web.deps import get_db
 from app.web.sanitize import sanitize_description
 
@@ -69,7 +72,66 @@ def _remainder(conn: sqlite3.Connection, edition_id: int):
     ).fetchall()
 
 
-def _render_edition(request: Request, conn, edition, section_filter: str | None):
+def _topic_chip_data(topics, active_topic: str | None, active_section: str | None):
+    """plans/27-ui-completion.md G-2: precomputed hrefs so index.html's chip
+    loop stays a plain Jinja loop - EDITION-AND-UI.md §2.3's "combinable"
+    section+topic chips, and re-clicking the active topic clears it."""
+    chips = []
+    for t in topics:
+        is_active = active_topic == t["name"]
+        params = []
+        if not is_active:
+            params.append(f"topic={quote(t['name'])}")
+        if active_section:
+            params.append(f"section={quote(active_section)}")
+        href = "/" + ("?" + "&".join(params) if params else "")
+        chips.append({"name": t["name"], "href": href, "active": is_active})
+    return chips
+
+
+def _render_edition(
+    request: Request,
+    conn,
+    edition,
+    section_filter: str | None,
+    topic_filter: str | None = None,
+):
+    topics = list_topics(conn)
+    topic_chips = _topic_chip_data(topics, topic_filter, section_filter)
+
+    if topic_filter:
+        # G-2: EDITION-AND-UI.md §2.2 - a topic is a saved query, "retroactive
+        # instantly - matches the whole history." That means matching against
+        # ALL of `seen`, not just today's front page (_edition_sections below
+        # only ever looks at edition_items) - a topic view is a different,
+        # wider query, not a narrowing of the edition.
+        try:
+            matched = match_topic(conn, topic_filter)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="No such topic")
+        if section_filter:
+            matched = [r for r in matched if r["section"] == section_filter]
+
+        wanted = [section_filter] if section_filter else list(SECTIONS)
+        sections = {s: [] for s in wanted}
+        for row in matched:
+            if row["section"] in sections:
+                sections[row["section"]].append(row)
+
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            {
+                "edition": edition,
+                "sections": sections,
+                "all_sections": SECTIONS,
+                "active_section": section_filter,
+                "active_topic": topic_filter,
+                "topic_chips": topic_chips,
+                "remainder": [],
+            },
+        )
+
     if edition is None:
         # Rule 7: never an empty page - but there's genuinely nothing built
         # yet on a brand-new install. An honest "not built yet" state, not
@@ -95,6 +157,8 @@ def _render_edition(request: Request, conn, edition, section_filter: str | None)
             "sections": sections,
             "all_sections": SECTIONS,
             "active_section": section_filter,
+            "active_topic": None,
+            "topic_chips": topic_chips,
             "remainder": remainder,
         },
     )
@@ -106,10 +170,11 @@ def _render_edition(request: Request, conn, edition, section_filter: str | None)
 def front_page(
     request: Request,
     section: str | None = None,
+    topic: str | None = None,
     conn: sqlite3.Connection = Depends(get_db),
 ):
     edition = _get_live_edition(conn)
-    return _render_edition(request, conn, edition, section_filter=section)
+    return _render_edition(request, conn, edition, section_filter=section, topic_filter=topic)
 
 
 @router.get("/edition/{date}", response_class=HTMLResponse)
@@ -117,12 +182,55 @@ def edition_by_date(
     request: Request,
     date: str,
     section: str | None = None,
+    topic: str | None = None,
     conn: sqlite3.Connection = Depends(get_db),
 ):
     edition = _get_edition_by_date(conn, date)
     if edition is None:
         raise HTTPException(status_code=404, detail="No edition for this date")
-    return _render_edition(request, conn, edition, section_filter=section)
+    return _render_edition(request, conn, edition, section_filter=section, topic_filter=topic)
+
+
+# ── topics (step 27, G-2) ────────────────────────────────────────────────
+
+@router.post("/topics")
+def create_topic(
+    name: str = Form(...),
+    query: str = Form(...),
+    conn: sqlite3.Connection = Depends(get_db),
+):
+    """The "+ new" control (EDITION-AND-UI.md §2.3): "opens a box to type a
+    query - the whole topic system is user-editable at runtime." Wraps the
+    existing app.topics.add_topic() - topics.name is UNIQUE, so a duplicate
+    name is a 400, not a raw IntegrityError 500."""
+    name = name.strip()
+    query = query.strip()
+    if not name or not query:
+        raise HTTPException(status_code=400, detail="name and query are both required")
+    try:
+        add_topic(conn, name, query)
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=400, detail=f"a topic named {name!r} already exists")
+    return RedirectResponse(url="/", status_code=303)
+
+
+# ── search (step 27, G-3) ────────────────────────────────────────────────
+
+@router.get("/search", response_class=HTMLResponse)
+def search_page(
+    request: Request,
+    q: str | None = None,
+    conn: sqlite3.Connection = Depends(get_db),
+):
+    """search.py's own docstring: `read`/`read_fts` only, never `seen` -
+    the personal-reading-history boundary. An empty/blank query renders the
+    page with no results rather than handing an empty string to FTS5's
+    MATCH, which raises OperationalError."""
+    query = (q or "").strip()
+    results = search_read(conn, query) if query else []
+    return templates.TemplateResponse(
+        request, "search.html", {"query": query, "results": results}
+    )
 
 
 # ── article view (step 09) ──────────────────────────────────────────────

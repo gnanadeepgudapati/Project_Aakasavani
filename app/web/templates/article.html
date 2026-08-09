@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} - Aakasavani{% endblock %}
+{% block content %}
+<article class="article-full" data-url-hash="{{ article.url_hash.hex() }}">
+  <h1>{{ article.title }}</h1>
+  <p class="meta">{{ article.source }}</p>
+  {% if article.full_text %}
+  <div class="body">{{ article.full_text }}</div>
+  {% else %}
+  <p class="honest-floor">Couldn't retrieve the full text.
+    <a href="{{ article.canonical_url }}">Open at source</a>.</p>
+  {% endif %}
+</article>
+{% endblock %}

@@ -12,13 +12,36 @@ from tests.conftest import NetworkAccessError
 
 def test_network_access_raises():
     """Proves the autouse guard actually blocks a real connection attempt -
-    not just that it exists, but that using it fails the way it's supposed to.
-    """
-    with pytest.raises(NetworkAccessError):
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    not just that it exists, but that using it fails the way it's supposed
+    to. Scoped to CONNECT, not socket() construction - see conftest.py's
+    _no_network docstring for why plain construction must stay unguarded."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        with pytest.raises(NetworkAccessError):
+            s.connect(("example.com", 443))
+    finally:
+        s.close()
 
     with pytest.raises(NetworkAccessError):
         socket.create_connection(("example.com", 443), timeout=1)
+
+
+def test_loopback_connect_is_not_blocked_by_the_guard():
+    """The guard must not block loopback - Windows' asyncio ProactorEventLoop
+    (needed by FastAPI's TestClient, used by every web test from step 08 on)
+    depends on local socketpair/connect working. Can't assert a SUCCESSFUL
+    connect without something listening, so instead assert any exception
+    raised is NOT ours."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.2)
+    try:
+        s.connect(("127.0.0.1", 1))  # almost certainly nothing listening there
+    except NetworkAccessError:
+        pytest.fail("loopback connect must not be blocked by the network guard")
+    except OSError:
+        pass  # connection refused/timed out - expected; proves it reached the OS
+    finally:
+        s.close()
 
 
 def test_clock_is_frozen(frozen_clock):

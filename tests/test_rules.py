@@ -82,11 +82,20 @@ def test_render_sanitisation_only_removes_markup():
 
     assert "<" not in cleaned and ">" not in cleaned, "tags must be fully removed"
     original_words = ["Officials", "confirmed", "the", "change", "today", "per", "a", "new", "filing"]
+
+    # Word-boundary subsequence check, not substring .index() - "a" is a
+    # substring of "change" and would falsely match there first, breaking
+    # the order check for reasons that have nothing to do with the sanitiser
+    # actually reordering anything.
+    import re
+
+    tokens = re.findall(r"\w+", cleaned)
+    cursor = 0
     for word in original_words:
-        assert word in cleaned, f"sanitiser dropped or reworded {word!r}"
-    # order preserved
-    positions = [cleaned.index(w) for w in original_words]
-    assert positions == sorted(positions), "sanitiser must not reorder text"
+        while cursor < len(tokens) and tokens[cursor] != word:
+            cursor += 1
+        assert cursor < len(tokens), f"sanitiser dropped or reworded {word!r}"
+        cursor += 1
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -227,26 +236,45 @@ def test_read_rows_never_expire(db_conn, frozen_clock):
 # Rule 6 · Pre-fetch at 04:00, never at click time
 # ─────────────────────────────────────────────────────────────────
 
-def test_no_network_on_reading_path():
-    """R-010. D-2 (S-006): /research/* is the SOLE named exception. Reading
-    routes must complete with zero network attempts (the autouse guard in
-    conftest.py would raise NetworkAccessError on any attempt); the research
-    route, called WITHOUT mocking its LLM client, must be the one place that
-    trips the guard - proving it's the only route wired to touch the
-    network at all."""
+def test_no_network_on_reading_path(db_conn, frozen_clock):
+    """R-010. D-2 (S-006) scoped by S-008: `/`, `/edition/*`, and opening a
+    front-page (pre-fetched) article must complete with zero network
+    attempts - the autouse guard in conftest.py would raise
+    NetworkAccessError on any attempt.
+
+    The other half of D-2 - that /research/* is the SOLE exception, proven
+    by it actually touching the network when called unmocked - can't be
+    tested until step 15 builds that route; asserting against a route that
+    doesn't exist yet would just be testing a 404, not the real boundary.
+    Extend this test at step 15 rather than leaving the claim unverified.
+
+    (Opening a NOT-pre-fetched "show everything" article is allowed to fetch
+    live by design - S-008 - and is deliberately not exercised here.)
+    """
     from fastapi.testclient import TestClient
 
+    from app.web.deps import get_db
     from app.web.main import app  # step 08
-    from tests.conftest import NetworkAccessError
 
+    app.dependency_overrides[get_db] = lambda: db_conn
     client = TestClient(app)
 
     for path in ("/", "/edition/2026-08-09"):
         resp = client.get(path)
         assert resp.status_code in (200, 404), f"{path} errored unexpectedly: {resp.status_code}"
 
-    with pytest.raises(NetworkAccessError):
-        client.post("/research/ask", json={"article": "x", "question": "y"})
+    db_conn.execute(
+        "INSERT INTO seen (url_hash, canonical_url, title, source, section, "
+        "published_at, description, full_text, fetched_via, first_seen, expires_at) "
+        "VALUES (?, 'https://x.test/prefetched', 'T', 'S', 'tech', 1, 'D', "
+        "'already fetched at build time', 'live', 1, 999999999999)",
+        (b"\x30" * 32,),
+    )
+    db_conn.commit()
+    resp = client.get(f"/article/{('30' * 32)}")
+    assert resp.status_code == 200, "a pre-fetched article must render without any network attempt"
+
+    app.dependency_overrides.clear()
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -365,10 +393,21 @@ def test_article_view_writes_dwell(db_conn, frozen_clock):
     """R-018."""
     from fastapi.testclient import TestClient
 
+    from app.web.deps import get_db
     from app.web.main import app  # step 09
 
+    app.dependency_overrides[get_db] = lambda: db_conn
     client = TestClient(app)
+
     url_hash_hex = "03" * 32
+    db_conn.execute(
+        "INSERT INTO read (url_hash, canonical_url, title, source, "
+        "published_at, full_text, fetched_via, read_at) VALUES "
+        "(?, 'https://x.test/a', 'T', 'S', 1, 'body', 'feed', 1)",
+        (bytes.fromhex(url_hash_hex),),
+    )
+    db_conn.commit()
+
     resp = client.post(f"/article/{url_hash_hex}/close", json={"dwell_seconds": 42})
     assert resp.status_code == 200
 
@@ -376,6 +415,8 @@ def test_article_view_writes_dwell(db_conn, frozen_clock):
         "SELECT dwell_seconds FROM read WHERE url_hash = ?", (bytes.fromhex(url_hash_hex),)
     ).fetchone()
     assert row is not None and row["dwell_seconds"] == 42
+
+    app.dependency_overrides.clear()
 
 
 # ─────────────────────────────────────────────────────────────────

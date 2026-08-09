@@ -10,9 +10,9 @@ dependencies = [
 [project.optional-dependencies]
 # Added as later steps need them - not required for step 01.
 extract = ["trafilatura>=2.2.0"]
-web = ["fastapi>=0.141", "jinja2>=3.1", "uvicorn>=0.34"]
+web = ["fastapi>=0.141", "jinja2>=3.1", "uvicorn>=0.34", "python-multipart>=0.0.9"]
 llm = ["anthropic>=0.121"]
-dev = ["pytest>=8.0", "ruff>=0.8"]
+dev = ["pytest>=8.0", "ruff>=0.8", "httpx>=0.27"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

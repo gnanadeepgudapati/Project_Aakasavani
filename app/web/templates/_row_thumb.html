@@ -1,0 +1,13 @@
+{# EDITION-AND-UI.md §6.3: ~90px thumbnail beside the text. No image ->
+   text-only row, never a placeholder or broken icon (§6.6). #}
+<article class="row thumb {{ 'has-image' if row.image_url else 'text-only' }}">
+  {% if row.image_url %}
+  <img class="thumb-image" src="{{ row.image_url }}" alt="" loading="lazy"
+       onerror="this.closest('.row').classList.add('text-only'); this.remove();">
+  {% endif %}
+  <div class="row-body">
+    <a href="/article/{{ row.url_hash.hex() }}"><h3>{{ row.title }}</h3></a>
+    <p class="desc">{{ (row.description or '') | sanitize }}</p>
+    <span class="source">{{ row.source }}</span>
+  </div>
+</article>

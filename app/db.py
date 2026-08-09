@@ -14,7 +14,12 @@ MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
 
 
 def connect(path: Path | str) -> sqlite3.Connection:
-    conn = sqlite3.connect(str(path))
+    # check_same_thread=False: FastAPI dispatches sync route handlers to a
+    # threadpool, so a connection created on one thread (e.g. by a test's
+    # db_conn fixture, or get_db()'s generator) gets USED from another.
+    # Safe here - ARCHITECTURE.md §10: single writer, single reader process,
+    # never truly concurrent within one request/test.
+    conn = sqlite3.connect(str(path), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA synchronous = NORMAL")

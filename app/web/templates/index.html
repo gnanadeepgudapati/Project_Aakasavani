@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block chips %}
+<nav class="chips">
+  <a href="/" class="chip {{ 'active' if not active_section }}">All</a>
+  {% for sec in all_sections %}
+  <a href="/?section={{ sec }}" class="chip {{ 'active' if active_section == sec }}">{{ sec.replace('_', ' & ') | title }}</a>
+  {% endfor %}
+</nav>
+{% endblock %}
+
+{% block content %}
+{% for section, rows in sections.items() %}
+<section class="section-block" data-section="{{ section }}">
+  <h2>{{ section.replace('_', ' & ') | title }}</h2>
+  {% for row in rows %}
+    {% if loop.first %}
+      {% include "_row_hero.html" %}
+    {% else %}
+      {% include "_row_thumb.html" %}
+    {% endif %}
+  {% endfor %}
+</section>
+{% endfor %}
+
+{% if remainder %}
+<details class="remainder">
+  <summary>Show everything ({{ remainder|length }} more)</summary>
+  {% for row in remainder %}
+  <article class="row text-only">
+    <a href="/article/{{ row.url_hash.hex() }}"><h3>{{ row.title }}</h3></a>
+    <p class="desc">{{ (row.description or '') | sanitize }}</p>
+    <span class="source">{{ row.source }}</span>
+  </article>
+  {% endfor %}
+</details>
+{% endif %}
+{% endblock %}

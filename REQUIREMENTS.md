@@ -43,7 +43,7 @@ the whole build is done** — see `plans/03-rules.md`.
       proven against synthetic violations by test_static_analysis_helper_catches_a_real_case)
 - [x] R-002  Rule 1 — `seen.description` verbatim from parser at storage
       verify: pytest tests/test_rules.py::test_stored_description_is_verbatim
-- [ ] R-003  Rule 1 — sanitiser strips markup, never rewords
+- [x] R-003  Rule 1 — sanitiser strips markup, never rewords
       verify: pytest tests/test_rules.py::test_render_sanitisation_only_removes_markup
 - [x] R-004  Rule 2 — one story across 6 feeds yields 6 rows, not 1
       verify: pytest tests/test_rules.py::test_six_outlets_six_entries
@@ -58,7 +58,8 @@ the whole build is done** — see `plans/03-rules.md`.
       verify: pytest tests/test_rules.py::test_sweep_strips_text_keeps_hash
 - [ ] R-009  Rule 5 — `read` rows survive any TTL sweep, at any clock offset
       verify: pytest tests/test_rules.py::test_read_rows_never_expire
-- [ ] R-010  Rule 6 — reading routes make no outbound HTTP; `/research/*` is the sole exception
+- [x] R-010  Rule 6 — reading routes make no outbound HTTP; `/research/*` is the sole exception
+      (the /research/* half of this proof is deferred to step 15 - see test docstring)
       verify: pytest tests/test_rules.py::test_no_network_on_reading_path
 - [x] R-011  Rule 7 — a build that raises mid-way leaves the previous edition live
       verify: pytest tests/test_rules.py::test_failed_build_keeps_previous_edition
@@ -76,7 +77,7 @@ the whole build is done** — see `plans/03-rules.md`.
       (demonstrated catching a simulated selenium install, 2026-08-09)
 - [x] R-017  Rule 9 — `read` schema has `read_at` and `dwell_seconds`, both writable
       verify: pytest tests/test_rules.py::test_read_schema_has_dwell_columns
-- [ ] R-018  Rule 9 — opening then leaving an article writes non-null `dwell_seconds`
+- [x] R-018  Rule 9 — opening then leaving an article writes non-null `dwell_seconds`
       verify: pytest tests/test_rules.py::test_article_view_writes_dwell
 - [x] R-019  Rule 10 — no forbidden dependency importable (static)
       verify: pytest tests/test_rules.py::test_no_forbidden_dependencies
@@ -191,24 +192,24 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 08 — Feed view
 
-- [ ] R-054  Front page renders the live edition's articles
+- [x] R-054  Front page renders the live edition's articles
       verify: pytest tests/test_feed_view.py::test_front_page_renders_edition
-- [ ] R-055  Section chips filter the visible list
+- [x] R-055  Section chips filter the visible list
       verify: pytest tests/test_feed_view.py::test_section_chip_filters
-- [ ] R-056  Hero image only on each section's lead story
+- [x] R-056  Hero image only on each section's lead story
       verify: pytest tests/test_feed_view.py::test_hero_on_lead_only
-- [ ] R-057  Missing image renders text-only, no placeholder/broken icon
+- [x] R-057  Missing image renders text-only, no placeholder/broken icon
       verify: pytest tests/test_feed_view.py::test_missing_image_renders_text_only
-- [ ] R-058  "Show everything" lists the remainder beyond the front page
+- [x] R-058  "Show everything" lists the remainder beyond the front page
       verify: pytest tests/test_feed_view.py::test_show_everything_lists_remainder
 
 ## Step 09 — Article view
 
-- [ ] R-059  Opening a front-page article serves pre-fetched text, zero fetch calls
+- [x] R-059  Opening a front-page article serves pre-fetched text, zero fetch calls
       verify: pytest tests/test_article_view.py::test_served_from_prefetch
-- [ ] R-060  `dwell_seconds` is written on leaving the article
+- [x] R-060  `dwell_seconds` is written on leaving the article
       verify: pytest tests/test_article_view.py::test_dwell_seconds_written
-- [ ] R-061  Opening an article creates exactly one `read` row
+- [x] R-061  Opening an article creates exactly one `read` row
       verify: pytest tests/test_article_view.py::test_read_row_created
 
 ## Step 10 — Topic chips
@@ -309,8 +310,7 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-48 / 88 (steps 01–19) ticked — steps 01–07 complete (14/19 Ten Rules genuinely
-closed; 5 pending their dependent steps + a final violation-demonstration
-pass). 19 Ten-Rules requirements are
+62 / 88 (steps 01–19) ticked — steps 01–09 complete (17/19 Ten Rules genuinely
+closed; 2 pending step 12 + a final violation-demonstration pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

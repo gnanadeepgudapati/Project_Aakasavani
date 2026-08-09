@@ -23,7 +23,41 @@ that produced S-001…S-004.
 
 ---
 
-## 2026-08-09 · Build session, step 07 (edition build job)
+## 2026-08-09 · Build session, steps 07-08 (edition build, feed view)
+
+### S-008 · Rule 6 scopes to the front page; "show everything" fetches on click by design
+
+**Decided:** the reading-path network ban (Rule 6, `test_no_network_on_
+reading_path`) applies to **front-page articles** — the ones `seen.full_text`
+was pre-fetched for. Opening a "show everything" (below-the-fold) article,
+which was never pre-fetched, is allowed to fetch live at click time.
+
+**Replaces:** nothing textually — this is a real contradiction between
+`CLAUDE.md`'s Rule 6 ("Pre-fetch at 04:00, never at click time... the user
+must never wait for a network fetch," stated with no carve-out) and
+`ARCHITECTURE.md` Flow B (explicitly: "else live fetch → Trafilatura" as the
+click-time path for a not-yet-`read` article) and `EDITION-AND-UI.md`'s own
+"DECIDED" edition shape ("full ingest... fetched on click, not pre-fetched").
+Found while implementing step 08/09's routes, not noticed during planning.
+
+**Reasoning:** the two-tier "front page (instant) + full ingest (on click)"
+shape is a deliberate, load-bearing design decision (S-003 sizes the front
+page around exactly this split), confirmed independently in two documents.
+Rule 6's actual purpose — the *primary* reading experience must never wait —
+is satisfied by guaranteeing the front page's ~39 articles are always
+pre-fetched; it was never a promise that literally every article in the full
+ingest opens instantly, and `EDITION-AND-UI.md` says so explicitly, in the
+open. Per `CLAUDE.md`'s own precedence rule, `ARCHITECTURE.md` (and the
+corroborating `EDITION-AND-UI.md`) wins over an unqualified reading of Rule 6.
+
+**Docs patched:** none — `CLAUDE.md` Rule 6's wording already permits this
+reading if "at click time" is understood as "for an article the build
+promised would be instant," but the ambiguity is worth recording so it isn't
+mistaken for a violation later. `tests/test_rules.py::test_no_network_on_
+reading_path` is written to test exactly this scope: pre-fetched articles
+never touch the network on open; a not-yet-fetched one legitimately may.
+
+---
 
 ### S-007 · `seen` gets `full_text`/`fetched_via`; pre-fetched text does not go in `read`
 

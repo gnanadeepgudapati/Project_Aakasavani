@@ -236,17 +236,21 @@ def test_read_rows_never_expire(db_conn, frozen_clock):
 # Rule 6 · Pre-fetch at 04:00, never at click time
 # ─────────────────────────────────────────────────────────────────
 
-def test_no_network_on_reading_path(db_conn, frozen_clock):
+def test_no_network_on_reading_path(db_conn, frozen_clock, monkeypatch):
     """R-010. D-2 (S-006) scoped by S-008: `/`, `/edition/*`, and opening a
     front-page (pre-fetched) article must complete with zero network
     attempts - the autouse guard in conftest.py would raise
     NetworkAccessError on any attempt.
 
-    The other half of D-2 - that /research/* is the SOLE exception, proven
-    by it actually touching the network when called unmocked - can't be
-    tested until step 15 builds that route; asserting against a route that
-    doesn't exist yet would just be testing a 404, not the real boundary.
-    Extend this test at step 15 rather than leaving the claim unverified.
+    /research/* is the SOLE exception, proven by making it actually touch
+    the network when called unmocked (no fake call_fn injected). FastAPI's
+    TestClient re-raises an unhandled route exception into the calling test
+    rather than converting it to a 500 response, so the real exception chain
+    is directly inspectable. The Anthropic SDK wraps the raw connection
+    failure in its own APIConnectionError rather than letting
+    NetworkAccessError propagate untouched - checked via __cause__/
+    __context__ instead, which still proves a real connection attempt was
+    made, not merely that some unrelated error occurred.
 
     (Opening a NOT-pre-fetched "show everything" article is allowed to fetch
     live by design - S-008 - and is deliberately not exercised here.)
@@ -255,6 +259,7 @@ def test_no_network_on_reading_path(db_conn, frozen_clock):
 
     from app.web.deps import get_db
     from app.web.main import app  # step 08
+    from tests.conftest import NetworkAccessError
 
     app.dependency_overrides[get_db] = lambda: db_conn
     client = TestClient(app)
@@ -273,6 +278,34 @@ def test_no_network_on_reading_path(db_conn, frozen_clock):
     db_conn.commit()
     resp = client.get(f"/article/{('30' * 32)}")
     assert resp.status_code == 200, "a pre-fetched article must render without any network attempt"
+
+    db_conn.execute(
+        "INSERT INTO read (url_hash, canonical_url, title, source, published_at, "
+        "full_text, fetched_via, read_at) VALUES "
+        "(?, 'https://x.test/read', 'T', 'S', 1, 'Paragraph one.\n\nParagraph two.', 'feed', 1)",
+        (b"\x31" * 32,),
+    )
+    db_conn.commit()
+
+    # No real ANTHROPIC_API_KEY is configured in this environment
+    # (BLOCKED.md B-002). Without one, the SDK fails at local header
+    # validation before ever attempting a connection - a different, earlier
+    # failure that wouldn't prove anything about network access. A
+    # syntactically-valid FAKE key gets past that local check and reaches
+    # the real (guard-intercepted) connection attempt instead.
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-fake-for-network-guard-proof")
+
+    with pytest.raises(Exception) as excinfo:
+        client.post(f"/research/{'31' * 32}/ask", json={"question": "What happened?"})
+
+    cause_chain = []
+    cur = excinfo.value
+    while cur is not None:
+        cause_chain.append(type(cur))
+        cur = cur.__cause__ or cur.__context__
+    assert NetworkAccessError in cause_chain, (
+        f"/research/*'s network attempt should trace back to the guard; got {cause_chain}"
+    )
 
     app.dependency_overrides.clear()
 

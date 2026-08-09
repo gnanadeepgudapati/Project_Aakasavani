@@ -59,7 +59,8 @@ the whole build is done** — see `plans/03-rules.md`.
 - [x] R-009  Rule 5 — `read` rows survive any TTL sweep, at any clock offset
       verify: pytest tests/test_rules.py::test_read_rows_never_expire
 - [x] R-010  Rule 6 — reading routes make no outbound HTTP; `/research/*` is the sole exception
-      (the /research/* half of this proof is deferred to step 15 - see test docstring)
+      (both halves now proven — step 15 completed the /research/* proof via a fake API key
+      that gets past local SDK validation and reaches the real, guard-intercepted connect)
       verify: pytest tests/test_rules.py::test_no_network_on_reading_path
 - [x] R-011  Rule 7 — a build that raises mid-way leaves the previous edition live
       verify: pytest tests/test_rules.py::test_failed_build_keeps_previous_edition
@@ -268,11 +269,11 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 Model pinned `claude-haiku-4-5-20251001` (`logs/SESSIONS.md` S-004). No Sonnet
 tier in Phase 1.
 
-- [ ] R-080  Starter questions generate lazily, on first panel open — never at build time
+- [x] R-080  Starter questions generate lazily, on first panel open — never at build time
       verify: pytest tests/test_panel.py::test_starter_questions_lazy
-- [ ] R-081  Second open of the same article reuses `read.starter_questions`, no new call
+- [x] R-081  Second open of the same article reuses `read.starter_questions`, no new call
       verify: pytest tests/test_panel.py::test_starter_questions_cached
-- [ ] R-082  Every panel answer cites a specific paragraph from the article
+- [x] R-082  Every panel answer cites a specific paragraph from the article
       verify: pytest tests/test_panel.py::test_answer_cites_paragraph
 
 ## Step 16 — Research panel: Timeline tab
@@ -310,7 +311,7 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-82 / 88 (steps 01–19) ticked — steps 01–14 complete. **All 19 Ten Rules
+85 / 88 (steps 01–19) ticked — steps 01–15 complete. **All 19 Ten Rules
 tests now pass naturally** — every dependent module exists. A final
 violation-demonstration pass (breaking each real implementation, confirming
 red, restoring) is still owed for the 13 not yet individually demonstrated —

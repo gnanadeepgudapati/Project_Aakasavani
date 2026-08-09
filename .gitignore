@@ -1,0 +1,38 @@
+# ── Loop memory — local state, not repo content ──────────────────
+.workflow/
+
+# ── Database ─────────────────────────────────────────────────────
+*.db
+*.db-wal
+*.db-shm
+backups/
+
+# ── Fixture cache ────────────────────────────────────────────────
+# NOTE: fixtures/ itself is COMMITTED — it is the test oracle.
+# Only the raw-download cache used to regenerate it is ignored.
+fixtures/.cache/
+fixtures/**/*.raw
+
+# ── Secrets ──────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Python ───────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# ── OS / editor ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

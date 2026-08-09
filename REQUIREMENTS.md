@@ -290,14 +290,14 @@ tier in Phase 1.
 
 ## Step 18 — Top-up job
 
-- [ ] R-086  Top-up adds headlines only — no full-text pre-fetch
+- [x] R-086  Top-up adds headlines only — no full-text pre-fetch
       verify: pytest tests/test_topup.py::test_headlines_only
-- [ ] R-087  Top-up never re-runs edition selection or the atomic swap
+- [x] R-087  Top-up never re-runs edition selection or the atomic swap
       verify: pytest tests/test_topup.py::test_does_not_rebuild_edition
 
 ## Step 19 — FTS5 search over `read`
 
-- [ ] R-088  Search queries `read`/`read_fts` only, never `seen`/`seen_fts`
+- [x] R-088  Search queries `read`/`read_fts` only, never `seen`/`seen_fts`
       verify: pytest tests/test_search.py::test_search_scope_is_read
 
 ## Steps 20–22 — deferred
@@ -311,8 +311,13 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-85 / 88 (steps 01–19) ticked — steps 01–17 complete. R-086..R-088 (steps
-18–19) remain. **All 19 Ten Rules
+**88 / 88 (steps 01–19) ticked. All of Phase 1's currently-planned scope is
+complete and green.** A final violation-demonstration pass on the 13
+Ten-Rules tests not yet individually proven (see the note at the top of that
+section) is the one remaining item before this checklist is fully honest, not
+just fully ticked. Steps 20–22 (deep history, ranking, mobile) remain
+deliberately unplanned — `ROADMAP.md`: "ship 01–09, live with it two weeks,
+then decide." **All 19 Ten Rules
 tests now pass naturally** — every dependent module exists. A final
 violation-demonstration pass (breaking each real implementation, confirming
 red, restoring) is still owed for the 13 not yet individually demonstrated —

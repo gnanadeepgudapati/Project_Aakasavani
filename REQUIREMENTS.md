@@ -47,7 +47,7 @@ the whole build is done** — see `plans/03-rules.md`.
       verify: pytest tests/test_rules.py::test_render_sanitisation_only_removes_markup
 - [ ] R-004  Rule 2 — one story across 6 feeds yields 6 rows, not 1
       verify: pytest tests/test_rules.py::test_six_outlets_six_entries
-- [ ] R-005  Rule 3 — `read.full_text` identical to extractor output, no post-processing
+- [x] R-005  Rule 3 — `read.full_text` identical to extractor output, no post-processing
       verify: pytest tests/test_rules.py::test_stored_text_equals_extractor_output
 - [ ] R-006  Rule 4 — the 04:00 build calls Anthropic zero times
       verify: pytest tests/test_rules.py::test_build_makes_zero_llm_calls
@@ -64,12 +64,12 @@ the whole build is done** — see `plans/03-rules.md`.
       verify: pytest tests/test_rules.py::test_failed_build_keeps_previous_edition
 - [ ] R-012  Rule 7 — a failure inside the swap transaction leaves zero partial rows
       verify: pytest tests/test_rules.py::test_swap_is_atomic
-- [ ] R-013  Rule 8 — two callers on one domain are enforced ≥1s apart, one shared instance
+- [x] R-013  Rule 8 — two callers on one domain are enforced ≥1s apart, one shared instance
       verify: pytest tests/test_rules.py::test_rate_limiter_is_shared_and_enforced
 - [x] R-014  Rule 8 — User-Agent matches `ARCHITECTURE.md` §6, contact address present, no impersonation
       verify: pytest tests/test_rules.py::test_user_agent_is_honest
       (demonstrated catching a real Chrome-impersonating UA string, 2026-08-09)
-- [ ] R-015  Rule 8 — `restrictive.txt` fixture refuses the fetch
+- [x] R-015  Rule 8 — `restrictive.txt` fixture refuses the fetch
       verify: pytest tests/test_rules.py::test_robots_txt_respected
 - [x] R-016  Rule 8 — no evasion dependency importable (static)
       verify: pytest tests/test_rules.py::test_no_evasion_dependencies
@@ -140,23 +140,23 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 05 — Rate limiter + fetcher
 
-- [ ] R-033  Two requests to the same domain are ≥1s apart
+- [x] R-033  Two requests to the same domain are ≥1s apart
       verify: pytest tests/test_fetcher.py::test_one_request_per_second_per_domain
-- [ ] R-034  No code path reaches the network without going through the shared limiter
+- [x] R-034  No code path reaches the network without going through the shared limiter
       verify: pytest tests/test_fetcher.py::test_all_fetches_go_through_limiter
-- [ ] R-035  `robots/restrictive.txt` fixture blocks the fetch
+- [x] R-035  `robots/restrictive.txt` fixture blocks the fetch
       verify: pytest tests/test_fetcher.py::test_robots_disallow_blocks_fetch
-- [ ] R-036  robots.txt fetched at most once per domain per day
+- [x] R-036  robots.txt fetched at most once per domain per day
       verify: pytest tests/test_fetcher.py::test_robots_cached_per_day
-- [ ] R-037  Extraction under 500 chars is treated as failure, not success
+- [x] R-037  Extraction under 500 chars is treated as failure, not success
       verify: pytest tests/test_fetcher.py::test_short_extraction_is_failure
-- [ ] R-038  Fallback order is feed → live → Wayback, in that order
+- [x] R-038  Fallback order is feed → live → Wayback, in that order
       verify: pytest tests/test_fetcher.py::test_fallback_chain_order
-- [ ] R-039  All three fallbacks failing returns headline+link, not an error
+- [x] R-039  All three fallbacks failing returns headline+link, not an error
       verify: pytest tests/test_fetcher.py::test_total_failure_returns_headline_only
-- [ ] R-040  A Wayback 429 backs off every worker, not just the one that hit it
+- [x] R-040  A Wayback 429 backs off every worker, not just the one that hit it
       verify: pytest tests/test_fetcher.py::test_wayback_429_global_backoff
-- [ ] R-041  robots.txt disallow blocks the Wayback fallback too (D-3, `logs/SESSIONS.md` S-006)
+- [x] R-041  robots.txt disallow blocks the Wayback fallback too (D-3, `logs/SESSIONS.md` S-006)
       verify: pytest tests/test_fetcher.py::test_robots_disallow_blocks_wayback_too
 
 ## Step 06 — Feed parser + dedupe
@@ -309,8 +309,8 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-19 / 88 (steps 01–19) ticked — steps 01–04 complete (6/19 Ten Rules genuinely
-closed; 13 pending their dependent steps + a final violation-demonstration
+31 / 88 (steps 01–19) ticked — steps 01–05 complete (9/19 Ten Rules genuinely
+closed; 10 pending their dependent steps + a final violation-demonstration
 pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>TechCrunch</title>
+	<atom:link href="https://techcrunch.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://techcrunch.com/</link>
+	<description>Startup and Technology News</description>
+	<lastBuildDate>Sat, 08 Aug 2026 21:33:23 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.9.6</generator>
+
+<image>
+	<url>https://techcrunch.com/wp-content/uploads/2015/02/cropped-cropped-favicon-gradient.png?w=32</url>
+	<title>TechCrunch</title>
+	<link>https://techcrunch.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Planned Amazon data center could become the biggest climate polluter in the U.S.</title>
+		<link>https://techcrunch.com/2026/08/08/planned-amazon-data-center-could-become-the-biggest-climate-polluter-in-the-u-s/</link>
+		
+		<dc:creator><![CDATA[Anthony Ha]]></dc:creator>
+		<pubDate>Sat, 08 Aug 2026 21:24:02 +0000</pubDate>
+				<category><![CDATA[AI]]></category>
+		<category><![CDATA[Climate]]></category>
+		<category><![CDATA[Amazon]]></category>
+		<guid isPermaLink="false">https://techcrunch.com/?p=3151379</guid>
+
+					<description><![CDATA[As part of a planned Texas data center, Amazon is investing in an on-site power plant that could reportedly become the largest source of climate pollution in the United States.]]></description>
+		
+		
+		
+			</item><item>
+		<title>OpenAI acquires presentation startup NextSlide</title>
+		<link>https://techcrunch.com/2026/08/08/openai-acquires-presentation-startup-nextslide/</link>
+		
+		<dc:creator><![CDATA[Anthony Ha]]></dc:creator>
+		<pubDate>Sat, 08 Aug 2026 19:41:13 +0000</pubDate>
+				<category><![CDATA[AI]]></category>
+		<category><![CDATA[Startups]]></category>
+		<category><![CDATA[OpenAI]]></category>
+		<guid isPermaLink="false">https://techcrunch.com/?p=3151377</guid>
+
+					<description><![CDATA[NextSlide says its team members are now working on ChatGPT.]]></description>
+		
+		
+		
+			</item><item>
+		<title>X replaces ‘misaligned’ revenue sharing program with Original Content Rewards</title>
+		<link>https://techcrunch.com/2026/08/08/x-replaces-misaligned-revenue-sharing-program-with-original-content-rewards/</link>
+		
+		<dc:creator><![CDATA[Anthony Ha]]></dc:creator>
+		<pubDate>Sat, 08 Aug 2026 16:34:22 +0000</pubDate>
+				<category><![CDATA[Media & Entertainment]]></category>
+		<category><![CDATA[Social]]></category>
+		<category><![CDATA[X]]></category>
+		<guid isPermaLink="false">https://techcrunch.com/?p=3151374</guid>
+
+					<description><![CDATA[X is winding down its existing Revenue Sharing program.]]></description>
+		
+		
+		
+			</item><item>
+		<title>The Kindle Scribe Colorsoft is a lot of fun, but it’s not a must-have</title>
+		<link>https://techcrunch.com/2026/08/08/the-kindle-scribe-colorsoft-is-a-lot-of-fun-but-its-not-a-must-have/</link>
+		
+		<dc:creator><![CDATA[Aisha Malik]]></dc:creator>
+		<pubDate>Sat, 08 Aug 2026 16:00:00 +0000</pubDate>
+				<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Gadgets]]></category>
+		<category><![CDATA[Kindle]]></category>
+		<guid isPermaLink="false">https://techcrunch.com/?p=3151237</guid>
+
+					<description><![CDATA[While the device is pretty and lightweight, it’s not something the everyday person needs due to its hefty price tag and size. ]]></description>
+		
+		
+		
+			</item><item>
+		<title>Google&#8217;s top hacker hunter explains why hacking groups get codenames</title>
+		<link>https://techcrunch.com/2026/08/08/googles-top-hacker-hunter-explains-why-hacking-groups-get-codenames/</link>
+		
+		<dc:creator><![CDATA[Lorenzo Franceschi-Bicchierai]]></dc:creator>
+		<pubDate>Sat, 08 Aug 2026 15:00:00 +0000</pubDate>
+				<category><![CDATA[Security]]></category>
+		<category><![CDATA[Google]]></category>
+		<category><![CDATA[hackers]]></category>
+		<category><![CDATA[cybersecurity]]></category>
+		<category><![CDATA[cybercrime]]></category>
+		<category><![CDATA[apt]]></category>
+		<category><![CDATA[advanced persistent threat]]></category>
+		<category><![CDATA[Mandiant]]></category>
+		<guid isPermaLink="false">https://techcrunch.com/?p=3151281</guid>
+
+					<description><![CDATA[Google recently changed how it refers and assigns names to hacking groups. TechCrunch spoke with one of the world’s foremost experts on tracking hackers to understand why companies give hackers codenames.]]></description>
+		
+		
+		
+			</item>
+	</channel>
+</rss>

@@ -88,13 +88,13 @@ checkbox, since the proof is a live demonstration, not a persistent test.
 
 `ARCHITECTURE.md` §12.2. The oracle, part 1.
 
-- [ ] R-024  Any real network call from within a test raises
+- [x] R-024  Any real network call from within a test raises
       verify: pytest tests/test_harness.py::test_network_access_raises
-- [ ] R-025  `app.clock.now()` returns the injected time, never wall-clock time
+- [x] R-025  `app.clock.now()` returns the injected time, never wall-clock time
       verify: pytest tests/test_harness.py::test_clock_is_frozen
-- [ ] R-026  Test DB is a fresh temp file per test, never the real `aakasavani.db`
+- [x] R-026  Test DB is a fresh temp file per test, never the real `aakasavani.db`
       verify: pytest tests/test_harness.py::test_db_is_temporary
-- [ ] R-027  Every fixture named in `plans/00-implementation-plan.md` §5 exists on disk
+- [x] R-027  Every fixture named in `plans/00-implementation-plan.md` §5 exists on disk
       verify: pytest tests/test_harness.py::test_all_fixtures_present
 
 ## Step 03 — `tests/test_rules.py`
@@ -290,6 +290,6 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-4 / 88 (steps 01–19) ticked — step 01 complete. 19 Ten-Rules requirements are
+8 / 88 (steps 01–19) ticked — steps 01–02 complete. 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

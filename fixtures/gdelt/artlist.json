@@ -1,0 +1,34 @@
+{
+  "articles": [
+    {
+      "url": "https://example-news.test/2026/08/01/story-one",
+      "url_mobile": "",
+      "title": "Officials Announce New Details on Ongoing Story",
+      "seendate": "20260801T060000Z",
+      "socialimage": "https://example-news.test/images/story-one.jpg",
+      "domain": "example-news.test",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://another-outlet.test/world/story-one-reaction",
+      "url_mobile": "",
+      "title": "Reaction Grows Following Yesterday's Announcement",
+      "seendate": "20260801T091500Z",
+      "socialimage": "",
+      "domain": "another-outlet.test",
+      "language": "English",
+      "sourcecountry": "United Kingdom"
+    },
+    {
+      "url": "https://thehindu.test/national/story-one-india-context",
+      "url_mobile": "",
+      "title": "What This Means for India",
+      "seendate": "20260801T133000Z",
+      "socialimage": "https://thehindu.test/images/context.jpg",
+      "domain": "thehindu.test",
+      "language": "English",
+      "sourcecountry": "India"
+    }
+  ]
+}

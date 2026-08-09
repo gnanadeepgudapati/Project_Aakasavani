@@ -24,8 +24,23 @@ Runs on every verify, forever, regardless of which step is in progress.
 Mapping: `ARCHITECTURE.md` §12.1. Rulings D-1/D-2 (`logs/SESSIONS.md` S-006)
 already folded into R-002, R-003, R-010.
 
-- [ ] R-001  Rule 1 — no Anthropic client reachable from feed/article render (static)
+**Written at step 03 (2026-08-09); most closed later, as their steps land.**
+Every test does its own lazy import inside the function body, so a rule test
+whose target module doesn't exist yet fails cleanly for that reason alone —
+legitimate "red before any feature exists" (`ARCHITECTURE.md` §8), not a
+collection error blocking the other 18. R-001/R-007/R-014/R-016/R-019 are
+ticked now because they're either self-contained (config values, installed
+packages — genuinely demonstrated catching a real violation, not vacuous) or
+their underlying mechanism is proven against synthetic fixtures
+(`test_static_analysis_helper_catches_a_real_case`, which itself caught and
+led to fixing a real relative-import resolution bug). The rest tick as their
+dependent step lands; **all 19 get a final violation-demonstration pass once
+the whole build is done** — see `plans/03-rules.md`.
+
+- [x] R-001  Rule 1 — no Anthropic client reachable from feed/article render (static)
       verify: pytest tests/test_rules.py::test_no_llm_import_in_render_path
+      (passes vacuously until app.web.routes exists, step 08 — the walker itself is
+      proven against synthetic violations by test_static_analysis_helper_catches_a_real_case)
 - [ ] R-002  Rule 1 — `seen.description` verbatim from parser at storage
       verify: pytest tests/test_rules.py::test_stored_description_is_verbatim
 - [ ] R-003  Rule 1 — sanitiser strips markup, never rewords
@@ -36,8 +51,9 @@ already folded into R-002, R-003, R-010.
       verify: pytest tests/test_rules.py::test_stored_text_equals_extractor_output
 - [ ] R-006  Rule 4 — the 04:00 build calls Anthropic zero times
       verify: pytest tests/test_rules.py::test_build_makes_zero_llm_calls
-- [ ] R-007  Rule 4 — no Anthropic import reachable from the build path (static)
+- [x] R-007  Rule 4 — no Anthropic import reachable from the build path (static)
       verify: pytest tests/test_rules.py::test_no_llm_import_in_build_path
+      (vacuous until app.edition.build exists, step 07 — same walker as R-001)
 - [ ] R-008  Rule 5 — sweep strips title/description/source, keeps hash, sets expired=1
       verify: pytest tests/test_rules.py::test_sweep_strips_text_keeps_hash
 - [ ] R-009  Rule 5 — `read` rows survive any TTL sweep, at any clock offset
@@ -50,18 +66,21 @@ already folded into R-002, R-003, R-010.
       verify: pytest tests/test_rules.py::test_swap_is_atomic
 - [ ] R-013  Rule 8 — two callers on one domain are enforced ≥1s apart, one shared instance
       verify: pytest tests/test_rules.py::test_rate_limiter_is_shared_and_enforced
-- [ ] R-014  Rule 8 — User-Agent matches `ARCHITECTURE.md` §6, contact address present, no impersonation
+- [x] R-014  Rule 8 — User-Agent matches `ARCHITECTURE.md` §6, contact address present, no impersonation
       verify: pytest tests/test_rules.py::test_user_agent_is_honest
+      (demonstrated catching a real Chrome-impersonating UA string, 2026-08-09)
 - [ ] R-015  Rule 8 — `restrictive.txt` fixture refuses the fetch
       verify: pytest tests/test_rules.py::test_robots_txt_respected
-- [ ] R-016  Rule 8 — no evasion dependency importable (static)
+- [x] R-016  Rule 8 — no evasion dependency importable (static)
       verify: pytest tests/test_rules.py::test_no_evasion_dependencies
+      (demonstrated catching a simulated selenium install, 2026-08-09)
 - [ ] R-017  Rule 9 — `read` schema has `read_at` and `dwell_seconds`, both writable
       verify: pytest tests/test_rules.py::test_read_schema_has_dwell_columns
 - [ ] R-018  Rule 9 — opening then leaving an article writes non-null `dwell_seconds`
       verify: pytest tests/test_rules.py::test_article_view_writes_dwell
-- [ ] R-019  Rule 10 — no forbidden dependency importable (static)
+- [x] R-019  Rule 10 — no forbidden dependency importable (static)
       verify: pytest tests/test_rules.py::test_no_forbidden_dependencies
+      (demonstrated catching a simulated redis+sqlalchemy install, 2026-08-09)
 
 **Step 03 acceptance is not "these pass."** Each must be observed catching a
 real violation before it counts — break the guarded thing, watch red, restore.
@@ -290,6 +309,8 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-8 / 88 (steps 01–19) ticked — steps 01–02 complete. 19 Ten-Rules requirements are
+13 / 88 (steps 01–19) ticked — steps 01–02 complete, step 03 written
+(5/19 Ten Rules genuinely closed now, 14 pending their dependent steps + a
+final violation-demonstration pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

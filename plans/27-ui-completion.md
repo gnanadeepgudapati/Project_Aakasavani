@@ -62,23 +62,55 @@ renumbered to close gaps, per `REQUIREMENTS.md`'s own rule.
   `tests/test_rules.py::test_no_llm_import_in_render_path` (R-001, untouched)
   keeps proving this statically. New tests below prove it dynamically too.
 
-### Timeline route fix — the one behavioural change to an existing endpoint
+### Two real bugs found (not hypothetical) — both fixed at the route boundary
 
-`app/research/timeline.py`'s real `_default_wikipedia`/`_default_gdelt`/
-`_default_guardian` all currently `raise NotImplementedError("not wired
-until deployment")` — that file is owned by the other track and out of
-scope here. Called unmocked (i.e. once a human actually opens the Timeline
-tab with no fixture injected), `get_timeline()` propagates that exception
-straight through `research_routes.py`'s `timeline()` handler today, which
-FastAPI turns into a raw 500. That is exactly the "stack trace, not a clean
-degraded state" the brief calls out for the missing-API-key case, just
-triggered by a different missing piece. Since I own `research_routes.py`
-(not `app/research/timeline.py`), the fix lives at the route boundary: wrap
-the call in `try/except Exception`, return `{"entries": [], "error":
-"timeline unavailable"}` on failure — the same shape the Ask/Explain/
-starter-questions routes already return via `budgeted_call`'s
-`BudgetedResult`. This is a route-layer robustness fix, not a change to
-Rule 4/budget semantics, and touches zero lines in `app/research/*`.
+**1. Timeline.** `app/research/timeline.py`'s real `_default_wikipedia`/
+`_default_gdelt`/`_default_guardian` all currently `raise
+NotImplementedError("not wired until deployment")` — that file is owned by
+the other track and out of scope here. Called unmocked (i.e. once a human
+actually opens the Timeline tab with no fixture injected), `get_timeline()`
+propagates that exception straight through `research_routes.py`'s
+`timeline()` handler, which FastAPI turns into a raw 500.
+
+**2. Ask / Explain / starter-questions, with no `ANTHROPIC_API_KEY` at
+all** (`BLOCKED.md` B-002 — the actual current state of this deployment,
+not a hypothetical). `app/research/budget.py::budgeted_call` only wraps
+`check_before_calling()` in `try/except BudgetExceeded` — the `fn()` call
+itself (line `text, actual_usd_cost = fn()`) is unguarded. With no API key
+configured, the Anthropic SDK fails *locally* at header/credential
+validation (`anthropic._client.Anthropic._validate_headers` raises
+`TypeError("Could not resolve authentication method...")`) **before
+attempting any connection at all** — confirmed by hand against the running
+dev server, not assumed. That `TypeError` propagated straight through
+`research_routes.py` as a raw 500 for all three endpoints. This is exactly
+the scenario the brief names directly: "There is currently no
+`ANTHROPIC_API_KEY`... The panel must show a clean, honest state."
+
+Both fixes live at the route boundary since `app/research/*` is out of
+ownership here. Each of the four routes now returns `{"entries": [],
+"error": ...}` or `{"error": ...}` on failure — the same shape
+`budgeted_call`'s `BudgetedResult` already uses for a budget breach, so the
+client JS's `if (data.error)` handling covers all four failure modes
+uniformly.
+
+**The ask/explain/starter-questions fix had to be scoped carefully.**
+`tests/test_rules.py::test_no_network_on_reading_path` (R-010, not owned or
+editable here) proves `/research/*` genuinely reaches the network by
+setting a *syntactically-valid but fake* `ANTHROPIC_API_KEY`, which gets
+the SDK past local header validation so it attempts a real connection —
+which the test's network guard intercepts, and the resulting
+`NetworkAccessError` (wrapped by the SDK's own `APIConnectionError`) must
+still propagate out of the route call for that test to mean anything. A
+blanket `except Exception: return {"error": ...}` around `budgeted_call`
+would silently swallow that too, breaking R-010's proof without technically
+touching its file. The fix instead walks `__cause__`/`__context__` (the
+same technique R-010's own test uses) looking for `NetworkAccessError` by
+class name, and re-raises if found — only a *local*, pre-network failure
+(the missing-API-key case) gets converted to a graceful response.
+`test_network_guard_failure_still_propagates` in `tests/test_panel.py`
+reproduces R-010's exact scenario against `/ask` as the guard-rail for this
+distinction, and the full `test_rules.py` suite (20 tests, unmodified)
+stays green throughout.
 
 ## G-2 · Topic chips
 
@@ -165,5 +197,5 @@ matching the header's existing sticky-nav treatment.
 
 ## Requirement IDs closed
 
-R-111…R-127 (R-128…R-130 unused — reserved, not renumbered away).
-See the final report / commit messages for the full ID → `verify:` mapping.
+R-111…R-130, all used. See the final report for the full ID → `verify:`
+mapping.

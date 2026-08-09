@@ -278,14 +278,14 @@ tier in Phase 1.
 
 ## Step 16 — Research panel: Timeline tab
 
-- [ ] R-083  Timeline renders from GDELT metadata only; bodies load lazily on click
+- [x] R-083  Timeline renders from GDELT metadata only; bodies load lazily on click
       verify: pytest tests/test_panel.py::test_timeline_metadata_only
-- [ ] R-084  GDELT unavailable degrades to Guardian + Wikipedia, doesn't error out
+- [x] R-084  GDELT unavailable degrades to Guardian + Wikipedia, doesn't error out
       verify: pytest tests/test_panel.py::test_gdelt_down_degrades
 
 ## Step 17 — Research panel: Explain tab
 
-- [ ] R-085  Explain uses only the user's text selection as context, not the whole article
+- [x] R-085  Explain uses only the user's text selection as context, not the whole article
       verify: pytest tests/test_panel.py::test_explain_uses_selection
 
 ## Step 18 — Top-up job
@@ -311,7 +311,8 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-85 / 88 (steps 01–19) ticked — steps 01–15 complete. **All 19 Ten Rules
+85 / 88 (steps 01–19) ticked — steps 01–17 complete. R-086..R-088 (steps
+18–19) remain. **All 19 Ten Rules
 tests now pass naturally** — every dependent module exists. A final
 violation-demonstration pass (breaking each real implementation, confirming
 red, restoring) is still owed for the 13 not yet individually demonstrated —

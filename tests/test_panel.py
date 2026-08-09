@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.research.client import ask_question
+from app.research.timeline import TimelineEntry, get_timeline
 from app.web.deps import get_db
 from app.web.main import app
 
@@ -100,3 +101,84 @@ def test_out_of_range_citation_is_rejected():
 
     with pytest.raises(ValueError, match="cited paragraph 99"):
         ask_question(ARTICLE, "irrelevant", call_fn=bad_call)
+
+
+# ── Step 16 - Timeline tab. REQUIREMENTS.md R-083..R-084 ───────────────────
+
+def test_timeline_metadata_only():
+    """R-083. Renders from metadata only - no body text field exists on
+    TimelineEntry at all; bodies load lazily only when a user clicks a
+    specific entry (the existing article view, not this module)."""
+    wiki_calls = []
+    gdelt_calls = []
+
+    def wikipedia_fn(query):
+        wiki_calls.append(query)
+        return TimelineEntry(title="Curated Wikipedia Timeline", url="https://wikipedia.test/x",
+                              date="2026-01-01", source="wikipedia.org")
+
+    def gdelt_fn(query):
+        gdelt_calls.append(query)
+        return [
+            TimelineEntry(title="Story breaks", url="https://a.test/1", date="2026-01-02", source="a.test"),
+            TimelineEntry(title="Follow-up coverage", url="https://b.test/1", date="2026-01-03", source="b.test"),
+        ]
+
+    entries = get_timeline("some story", wikipedia_fn=wikipedia_fn, gdelt_fn=gdelt_fn)
+
+    assert len(entries) == 3
+    assert [e.title for e in entries] == [
+        "Curated Wikipedia Timeline", "Story breaks", "Follow-up coverage",
+    ]
+    assert not hasattr(entries[0], "body"), "timeline entries must be metadata only"
+    assert wiki_calls == ["some story"]
+    assert gdelt_calls == ["some story"]
+
+
+def test_gdelt_down_degrades(db_conn):
+    """R-084. ARCHITECTURE.md §5: 'GDELT down | Chronology degrades to
+    Guardian + Wikipedia only.'"""
+    guardian_calls = []
+
+    def wikipedia_fn(query):
+        return None  # no curated article for this one
+
+    def gdelt_fn(query):
+        raise ConnectionError("GDELT is down")
+
+    def guardian_fn(query):
+        guardian_calls.append(query)
+        return [TimelineEntry(title="Guardian archive hit", url="https://guardian.test/1",
+                               date="2026-01-01", source="theguardian.com")]
+
+    entries = get_timeline("some story", wikipedia_fn=wikipedia_fn, gdelt_fn=gdelt_fn, guardian_fn=guardian_fn)
+
+    assert len(entries) == 1
+    assert entries[0].title == "Guardian archive hit"
+    assert guardian_calls == ["some story"]
+
+
+# ── Step 17 - Explain tab. REQUIREMENTS.md R-085 ────────────────────────────
+
+def test_explain_uses_selection(client, db_conn, monkeypatch):
+    """R-085. Explain must use ONLY the user's highlighted text, never the
+    full article - proven by a fake call_fn that asserts what it actually
+    received."""
+    _seed_read(db_conn)  # a `read` row with a much longer full_text exists
+
+    received = {}
+
+    def fake_explain_call(selection):
+        received["selection"] = selection
+        return "A short explanation.", 0.001
+
+    monkeypatch.setattr("app.research.explain._default_explain_call", fake_explain_call)
+
+    resp = client.post(
+        f"/research/{URL_HASH_HEX}/explain", json={"selection": "a highlighted phrase"}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["explanation"] == "A short explanation."
+
+    assert received["selection"] == "a highlighted phrase"
+    assert ARTICLE not in received["selection"], "explain must not smuggle in the full article"

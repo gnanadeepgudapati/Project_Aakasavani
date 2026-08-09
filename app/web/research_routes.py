@@ -16,12 +16,15 @@ from pydantic import BaseModel
 
 from app.research.budget import budgeted_call
 from app.research.client import MODEL, ask_question, generate_starter_questions
+from app.research.explain import explain_selection
+from app.research.timeline import get_timeline
 from app.web.deps import get_db
 
 router = APIRouter(prefix="/research")
 
 STARTER_QUESTIONS_ESTIMATE_USD = 0.01
 ASK_ESTIMATE_USD = 0.01
+EXPLAIN_ESTIMATE_USD = 0.005
 
 
 @router.get("/{url_hash_hex}/starter-questions")
@@ -75,3 +78,36 @@ def ask(url_hash_hex: str, payload: AskPayload, conn: sqlite3.Connection = Depen
         return {"error": result.error_message}
 
     return json.loads(result.text)
+
+
+@router.get("/{url_hash_hex}/timeline")
+def timeline(url_hash_hex: str, query: str, conn: sqlite3.Connection = Depends(get_db)):
+    """ARCHITECTURE.md §2.7 Flow C: metadata only, renders in ~1s. Nothing
+    here is persisted unless the user opens a specific entry - that becomes
+    an ordinary read via the existing /article/{hash} flow, not this route."""
+    entries = get_timeline(query)
+    return {
+        "entries": [
+            {"title": e.title, "url": e.url, "date": e.date, "source": e.source}
+            for e in entries
+        ]
+    }
+
+
+class ExplainPayload(BaseModel):
+    selection: str
+
+
+@router.post("/{url_hash_hex}/explain")
+def explain(url_hash_hex: str, payload: ExplainPayload, conn: sqlite3.Connection = Depends(get_db)):
+    """Uses ONLY payload.selection as context - never looks up or sends the
+    article's full_text. See app/research/explain.py's module docstring."""
+
+    def fn():
+        return explain_selection(payload.selection)
+
+    result = budgeted_call(conn, EXPLAIN_ESTIMATE_USD, fn, model=MODEL, purpose="explain")
+    if result.budget_exceeded:
+        return {"error": result.error_message}
+
+    return {"explanation": result.text}

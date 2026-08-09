@@ -19,7 +19,9 @@ Built to `ARCHITECTURE.md` and `EDITION-AND-UI.md`:
 
 **Cost: ~$10–16/month. No LLM anywhere except the panel, on request.**
 
-**Ship steps 1–5 and live with it for two weeks before building anything below.**
+**Ship steps 01–09 and live with it for two weeks before building anything
+below.** (`ARCHITECTURE.md` §8: "Steps 01–09 are the product." Steps 1–5 alone
+have no feed view and no article view — not a usable edition.)
 
 ---
 

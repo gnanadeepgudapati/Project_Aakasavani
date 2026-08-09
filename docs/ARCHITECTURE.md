@@ -118,7 +118,14 @@ could be deleted entirely without breaking anything.
 
 ### 2.1 Ingest worker
 
-Runs every 15 minutes. Single process, cron or an internal scheduler.
+Runs as part of the 04:00 edition build and the :30 top-up jobs — see
+`EDITION-AND-UI.md` Part 1. **Not a standalone poller.** An earlier draft of
+this section described one running independently every 15 minutes; that was a
+leftover of a pre-edition "continuous river" design this project explicitly
+rejected (§0 principle 4, and `EDITION-AND-UI.md` §0's river-vs-edition table).
+It also wasn't in the cron table in §10, and a 15-minute cadence would triple
+fetch volume against the 35 frozen feeds for no user-visible benefit, straining
+Rule 8's politeness posture. Deleted 2026-08-09 — `logs/SESSIONS.md` D-4/S-006.
 
 - **Conditional GET** — send `If-None-Match` / `If-Modified-Since` per feed.
   Most polls return `304 Not Modified` and cost nothing. Cuts bandwidth ~95%.
@@ -356,6 +363,7 @@ it becomes an ordinary read.
 |---|---|
 | Feed 404 / timeout | Increment `fail_count`; disable after 10 consecutive; log |
 | Article 403 (bot block) | Fall to Wayback. **Expect this to worsen after 15 Sep 2026** |
+| `robots.txt` disallows the article | **No live fetch, no Wayback fallback either** — headline + description + link only. Reading a public archive of content the publisher's own `robots.txt` asked us not to take defeats the point of honouring it. `logs/SESSIONS.md` D-3/S-006 |
 | Extraction < 500 chars | Treat as failure, fall through — catches paywalls and consent walls |
 | Wayback 429 | Exponential backoff across *all* workers, not per-request |
 | IA save fails | Retry ≤3×, then abandon. Never surfaced to the user |
@@ -497,7 +505,7 @@ Recorded so they stay decided rather than quietly creeping back in:
 - ❌ Ranking beyond recency + hand-written source weight
 
 **In scope, and not to be confused with the above:** the research panel
-(step 9–11) answers questions about the currently open article on explicit
+(step 15–17) answers questions about the currently open article on explicit
 request. It is a chat interface, deliberately, and it is the sole LLM in the
 system. The rule it obeys is **pull, not push** — nothing is generated until the
 user asks. See `EDITION-AND-UI.md` Part 3.
@@ -567,12 +575,12 @@ Internet Archive endpoints, auth and rate limits: see `SOURCES.md` §4.
 
 ---
 
-## 13. Documentation retirement
+## 11. Documentation retirement
 
 **These documents describe a system that does not exist yet. They are a plan, not
 documentation, and plans go stale.**
 
-Once build step 5 lands and there is a working edition:
+Once build step 09 lands and there is a working edition:
 
 | Section | Fate |
 |---|---|
@@ -605,18 +613,36 @@ does not. All ten convert:
 
 | Rule | Test in `tests/test_rules.py` |
 |---|---|
-| 1 · No AI text in reading path | `test_no_llm_import_in_render_path` — static: no Anthropic client reachable from feed/article render<br>`test_feed_description_is_verbatim` — rendered blurb equals the source RSS `<description>` byte-for-byte |
+| 1 · No AI text in reading path | `test_no_llm_import_in_render_path` — static: no Anthropic client reachable from feed/article render<br>`test_stored_description_is_verbatim` — `seen.description` equals the parsed RSS `<description>`, byte-for-byte, **at storage** — see below<br>`test_render_sanitisation_only_removes_markup` — the HTML allowlist sanitiser may strip tags but must never alter, reorder, or reword surviving text |
 | 2 · No cross-article synthesis | `test_six_outlets_six_entries` — one story across six feeds yields six rows |
 | 3 · Articles whole and unaltered | `test_stored_text_equals_extractor_output` — no post-processing between Trafilatura and `read.full_text` |
 | 4 · AI is pull, not push | `test_build_makes_zero_llm_calls` — the 04:00 job never calls Anthropic |
 | 5 · TTL firehose, keep reads | `test_sweep_strips_text_keeps_hash`<br>`test_read_rows_never_expire` |
-| 6 · Pre-fetch, never at click | `test_no_network_on_request_path` — request handlers make no outbound HTTP |
+| 6 · Pre-fetch, never at click | `test_no_network_on_reading_path` — the *reading* handlers (`/`, `/edition/*`, `/article/*`) make no outbound HTTP; `/research/*` is the sole named exception, matching Rule 4 — see below |
 | 7 · Never an empty page | `test_failed_build_keeps_previous_edition`<br>`test_swap_is_atomic` — killed mid-build leaves the old edition live |
 | 8 · Never evade bot detection | `test_rate_limiter_is_shared_and_enforced`<br>`test_user_agent_is_honest`<br>`test_robots_txt_respected` |
 | 9 · Log `read_at` / `dwell_seconds` | `test_read_schema_has_dwell_columns`<br>`test_article_view_writes_dwell` |
 | 10 · SQLite, single process | `test_no_forbidden_dependencies` — psycopg2, redis, celery, pinecone, chromadb absent |
 
 `tests/test_rules.py` runs on **every** verify, for every step, forever.
+
+**Rule 1, "byte-for-byte," scopes to storage, not render.** RSS descriptions
+routinely carry HTML entities and markup. Measured directly against
+`feedparser` 6.0.14: it decodes entities during parsing, so `&amp;` on the wire
+already becomes `&` before any application code sees the string — byte-for-byte
+identity with the wire bytes is unsatisfiable at render time by any
+implementation, not just an unlucky one. The rule's actual intent — no AI
+rewording — is captured by asserting storage is verbatim from the parser, plus a
+second test that sanitisation only ever removes markup. `logs/SESSIONS.md`
+D-1/S-006.
+
+**Rule 6 names `/research/*` as an explicit exception**, not a hole in the test.
+Taken completely literally the rule would forbid the research panel outright,
+since it is a request handler that calls Anthropic and GDELT by design — that
+is Rule 4's entire premise. Scoping the assertion to the three reading routes
+and asserting `/research/*` is the *only* route permitted network access is
+stricter than an unscoped test would be: network access appearing anywhere
+else fails immediately. `logs/SESSIONS.md` D-2/S-006.
 
 ### 12.2 Fixtures — tests never touch the network
 

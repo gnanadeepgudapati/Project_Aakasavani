@@ -29,8 +29,10 @@ There is one build order, in `ARCHITECTURE.md` §8. Do not create a second one.
 ### Documentation is disposable
 
 These documents describe a system that **does not exist yet**. They are a plan,
-not documentation. After build step 5, most of the *what* becomes redundant with
-code and must be deleted — see `ARCHITECTURE.md` §11. Code is more trustworthy
+not documentation. After build step 09 — the article view, when "a finished
+edition, filterable, opening instantly" first exists (`ARCHITECTURE.md` §8) —
+most of the *what* becomes redundant with code and must be deleted — see
+`ARCHITECTURE.md` §11. Code is more trustworthy
 than prose about code.
 
 Four documents were already deleted for describing rejected features. **A
@@ -93,7 +95,7 @@ stop and ask.**
 
 | Layer | Choice | Why |
 |---|---|---|
-| Language | **Python 3.12** | Trafilatura and feedparser are Python; no reason to fight it |
+| Language | **Python 3.14** (dev, verified working). Prod version pinned at deploy time — Ubuntu 24.04 ships 3.12; see `BLOCKED.md` B-001 | Trafilatura and feedparser are Python; no reason to fight it |
 | Web | **FastAPI** | Async fetching, simple, no ceremony |
 | Templates | **Jinja2, server-rendered** | Page must be instant. No SPA, no build step |
 | JS | **Vanilla, minimal** | Only the panel and filters need it. No React |

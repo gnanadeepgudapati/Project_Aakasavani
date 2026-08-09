@@ -568,7 +568,8 @@ defaulting to 3.
 That's it. No engagement modelling, no scoring function. Hand-edit the source
 weights when the front page looks wrong. Revisit only after `dwell_seconds` has
 accumulated enough real data to justify something smarter — which is precisely
-why it's being logged from step 4.
+why the column exists from step 04 and is written starting step 09, the
+article view.
 
 ---
 

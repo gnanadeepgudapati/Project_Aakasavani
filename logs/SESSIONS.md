@@ -13,6 +13,91 @@ lets the authoritative docs stay wrong defeats its own purpose.
 
 ---
 
+## 2026-08-09 · Approval to build (Prompt 2 start)
+
+User approved `plans/00-implementation-plan.md` and said "start the build,"
+without individually re-litigating R-7/R-8 and D-1…D-4 — each already carried a
+concrete, evidence-backed recommendation in that plan. Adopted as written.
+Recorded here rather than silently applied, per the same reporting obligation
+that produced S-001…S-004.
+
+---
+
+### S-006 · Rulings on D-1 through D-4
+
+**D-1 — Rule 1 "byte-for-byte" scopes to storage, not render.** Measured
+directly (not assumed) with feedparser 6.0.14: it decodes HTML entities during
+parsing, so `&amp;` on the wire is already `&` before any app code runs.
+Byte-for-byte identity with the wire bytes is unsatisfiable at render by any
+implementation. `test_feed_description_is_verbatim` is replaced by
+`test_stored_description_is_verbatim` (storage) plus
+`test_render_sanitisation_only_removes_markup` (an allowlist sanitiser may
+strip tags but never reword). Patched `ARCHITECTURE.md` §12.1.
+
+**D-2 — Rule 6 excludes `/research/*` by name.** Taken literally the rule
+forbids the research panel outright, since it is a request handler that calls
+Anthropic and GDELT by design — Rule 4's entire premise. Renamed the test
+`test_no_network_on_reading_path`, scoped to `/`, `/edition/*`, `/article/*`,
+and asserting `/research/*` is the *only* route with network access — stricter
+than an unscoped test, since access appearing anywhere else now fails
+immediately. Patched `ARCHITECTURE.md` §12.1.
+
+**D-3 — `robots.txt` disallow blocks the Wayback fallback too.** Was unstated.
+Recovering a publisher's page from a public archive after their own
+`robots.txt` asked us not to take it defeats the point of honouring `robots.txt`
+at all. Patched `ARCHITECTURE.md` §5 (failure-handling table).
+
+**D-4 — deleted the standalone 15-minute ingest worker.** `ARCHITECTURE.md`
+§2.1 described one; nothing else in the document supports it — the cron table
+in §10 lists only build/top-up/sweep/backup, and the whole `EDITION-AND-UI.md`
+thesis is that the continuous river was replaced by a scheduled edition. A
+15-minute cadence would triple fetch volume against the 35 frozen feeds for no
+user-visible benefit, straining Rule 8. Patched `ARCHITECTURE.md` §2.1.
+
+**Docs patched:** `ARCHITECTURE.md` §5, §2.1, §12.1 (two rows plus explanatory
+notes).
+
+---
+
+### S-005 · Fixed broken cross-references and the "ship line" contradiction
+
+**Renumbered `ARCHITECTURE.md`'s "Documentation retirement" section 13 → 11.**
+The document's own numbering was broken — sections ran 0…10, jumped straight to
+13, then printed 12 *after* 13 physically. §11 never existed. `CLAUDE.md` had
+already been citing "`ARCHITECTURE.md` §11" for this section; renumbering makes
+that existing citation correct rather than editing CLAUDE.md to match a broken
+number.
+
+**"Ship steps 1–5" → "ship steps 01–09."** `CLAUDE.md`, the (now-renumbered)
+`ARCHITECTURE.md` §11, and `ROADMAP.md` all said step 5. `ARCHITECTURE.md` §8 —
+the sole authoritative build order — says "Steps 01–09 are the product" and
+defines why: 08 is the feed view, 09 is the article view logging
+`dwell_seconds`. Step 5 alone is a rate limiter and fetcher with no edition, no
+feed view, and no article view — not a usable product by `CLAUDE.md`'s own
+definition of done ("opens one page, finds a finished edition... clicking any
+article opens the full text instantly"). §8's reasoned statement wins over the
+three passing "step 5" mentions elsewhere. Patched `CLAUDE.md`, `ARCHITECTURE.md`
+§11, `ROADMAP.md`.
+
+**Fixed two more stale step numbers:** the research panel was called "step
+9–11" in `ARCHITECTURE.md` §9 — panel steps are actually 15–17 (14 is the
+budget-wrapper prerequisite). And `EDITION-AND-UI.md` said `dwell_seconds` is
+"logged from step 4" — step 04 only adds the *column*; nothing writes to it
+until the article view, step 09.
+
+**Python stack recorded as 3.14 (dev), prod deferred.** See `BLOCKED.md` B-001:
+lxml/trafilatura/feedparser/fastapi all install as binary wheels and run
+correctly on 3.14.3, measured directly. The only real open question — dev 3.14
+vs. Ubuntu 24.04's system 3.12 — is a deployment-time decision nothing in steps
+01–21 depends on, so it is deferred rather than blocking. Patched `CLAUDE.md`
+§ Stack.
+
+**Docs patched:** `ARCHITECTURE.md` (§13→§11 heading, §9, §11 body),
+`CLAUDE.md` (disposability note, § Stack), `ROADMAP.md`,
+`EDITION-AND-UI.md` (front-page ranking note).
+
+---
+
 ## 2026-08-08 · Planning session (Prompt 1)
 
 Four contradictions were found between the governing documents. `CLAUDE.md` says

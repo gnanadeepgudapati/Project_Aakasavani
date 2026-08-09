@@ -306,3 +306,43 @@ def test_read_minutes_computed_from_prefetched_word_count(db_conn, frozen_clock)
 
     edition = db_conn.execute("SELECT read_minutes FROM editions WHERE id = ?", (edition_id,)).fetchone()
     assert edition["read_minutes"] == 2, "2 articles x 220 words = 440 words = ceil(440/220) = 2 minutes"
+
+
+# ─────────────────────────────────────────────────────────────────
+# Step 26 - real-run finding. plans/26-first-real-run-triage.md.
+# ─────────────────────────────────────────────────────────────────
+
+def test_200_with_unparseable_xml_is_not_counted_as_a_failure(db_conn):
+    """R-109. Found on the first real run against the 35 frozen feeds: The
+    Print and Scroll.in (BLOCKED.md B-004) both returned real HTTP 200
+    responses with genuinely malformed XML (feedparser bozo=1, 0 entries) -
+    not a network/HTTP failure. parse_feed's own contract (R-044) is to
+    never raise on malformed XML, so poll_all_feeds' per-feed try/except
+    never sees an exception here: this is a *successful* zero-item poll,
+    not a failure, and fail_count is correctly left untouched. This
+    documents that as INTENTIONAL, current behaviour - a persistently
+    malformed-but-2xx feed is never auto-disabled by fail_count alone,
+    unlike a 403/404 feed. Flagged in the step 26 report as a real
+    ARCHITECTURE.md §5 gap (only 404/timeout are named), not silently
+    fixed - deciding whether "0 entries" should count toward fail_count is
+    a spec decision outside this task's D-1..D-8 scope."""
+    db_conn.execute(
+        "INSERT INTO feeds (url, name, section, source_weight, enabled, fail_count) VALUES "
+        "('https://malformed-but-200.test/feed', 'MalformedBut200', 'tech', 3, 1, 0)"
+    )
+    db_conn.commit()
+
+    malformed_xml = b"this is not xml at all, just plain garbage text 12345"  # feedparser: bozo=1, 0 entries
+
+    def fetch_fn(url, etag, last_modified):
+        return FeedFetchResult(status=200, body=malformed_xml)
+
+    inserted = poll_all_feeds(db_conn, fetch_fn=fetch_fn)
+
+    assert inserted == 0, "malformed XML parses to zero entries - nothing to insert"
+    row = db_conn.execute(
+        "SELECT fail_count, enabled, last_polled FROM feeds WHERE url='https://malformed-but-200.test/feed'"
+    ).fetchone()
+    assert row["fail_count"] == 0, "a 200-with-garbage response is not an exception - not counted as a failure"
+    assert row["enabled"] == 1
+    assert row["last_polled"] is not None

@@ -214,11 +214,11 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 10 — Topic chips
 
-- [ ] R-062  A saved FTS5 query matches the articles it should
+- [x] R-062  A saved FTS5 query matches the articles it should
       verify: pytest tests/test_topics.py::test_topic_query_matches
-- [ ] R-063  A newly added topic immediately matches existing history
+- [x] R-063  A newly added topic immediately matches existing history
       verify: pytest tests/test_topics.py::test_new_topic_is_retroactive
-- [ ] R-064  Topics are editable at runtime, no redeploy
+- [x] R-064  Topics are editable at runtime, no redeploy
       verify: pytest tests/test_topics.py::test_topic_editable
 
 ## Step 11 — Internet Archive queue
@@ -310,7 +310,7 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-62 / 88 (steps 01–19) ticked — steps 01–09 complete (17/19 Ten Rules genuinely
+65 / 88 (steps 01–19) ticked — steps 01–10 complete (17/19 Ten Rules genuinely
 closed; 2 pending step 12 + a final violation-demonstration pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

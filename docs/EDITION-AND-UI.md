@@ -233,6 +233,12 @@ gives you that.
 Start with 5–6 topics, refine as you use it. A topic that never gets clicked is
 one row to delete.
 
+**No stemming.** `seen_fts`/`read_fts` use FTS5's default `unicode61`
+tokenizer — verified directly (step 10): a query for `tariff` does not match
+an article containing `tariffs`. Write out the word forms you actually
+expect, the way the built-in examples above already do (`renewable`, not just
+`renewables`).
+
 ## 2.3 In the UI
 
 Two chip rows, combinable:

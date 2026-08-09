@@ -2,75 +2,68 @@
 
 **Read this first, every session. Rewritten each session, never appended.**
 
-Last updated: 2026-08-08 — planning session (Prompt 1)
+Last updated: 2026-08-09 — supervised build (Prompt 2), step 01 complete
 
 ---
 
 ## Where the project is
 
-**Planning complete. No application code exists. Nothing has been built.**
+**Planning approved. Step 01 (feed audit) done and green. Steps 02–03 next.**
 
-The repo contains specs, scaffolding, and a git history of exactly one commit.
-`app/` does not exist. `tests/` does not exist. `fixtures/` does not exist.
+Repo is on GitHub: `github.com/gnanadeepgudapati/Project_Aakasavani`, `main`,
+pushed and tracked. Dev environment is Python 3.14.3 in `.venv/` (see
+`logs/SESSIONS.md` S-005 — measured working, not assumed).
 
 ## What exists
 
 | Path | State |
 |---|---|
-| `CLAUDE.md` | Binding rules. Pre-existing |
-| `PROMPT-FOR-CLAUDE-CODE.md` | The three-prompt workflow. Pre-existing |
-| `docs/` × 5 | Specs, reference, process, guard rail. Pre-existing |
-| `CONTEXT.md` | This file |
-| `BLOCKED.md` | **2 open items — both block build step 01** |
-| `logs/ERRORS.md` | Empty, indexed |
-| `logs/SESSIONS.md` | 4 architectural decisions from the planning session |
-| `plans/` | Empty. `plans/01-feed-audit.md` is the next file to write |
-| `.workflow/STATE.json` | `current_step: null`, phase `PLANNING` |
-| `.workflow/BUDGET.json` | $0.00 spent, caps loaded |
-| `.gitignore` | Covers `.workflow/`, `*.db`, fixture cache, `.env` |
+| `CLAUDE.md`, `docs/` × 5 | Binding rules + specs. Patched several times this session — see `logs/SESSIONS.md` |
+| `REQUIREMENTS.md` | 88 requirements + 19 Ten-Rules, all with `verify:`. **4/88 ticked** (step 01) |
+| `plans/00-implementation-plan.md` | Approved |
+| `plans/01-feed-audit.md` | Done |
+| `BLOCKED.md` | 2 open (B-003 deploy-only, non-blocking; B-004 — 7/35 feeds unreachable, non-blocking). B-001, B-002 resolved/tracked |
+| `logs/SESSIONS.md` | S-001…S-006 — see below |
+| `.venv/` | Python 3.14.3, `feedparser`/`pyyaml`/`pytest`/`ruff` installed. Gitignored |
+| `pyproject.toml` | Deps + pytest config. `app` package registered |
+| `app/__init__.py`, `app/config.py`, `app/registry.py` | Minimal — just enough for `import app` and to load/validate `data/feeds.yaml` |
+| `data/feeds.yaml` | **The 35 frozen feeds**, audited. 28 reachable, 7 down (`BLOCKED.md` B-004) |
+| `scripts/audit_feeds.py` | Run once already. Re-run only if a feed's format changes |
+| `tests/test_registry.py` | R-020…R-023, all green |
+| `.env.example` | Committed, empty values |
 
-**Not created, deliberately:** `REQUIREMENTS.md` (comes after plan approval, per
-Prompt 2), `PROGRESS.md` (`git log` is already one).
+**Not created yet:** `tests/conftest.py`, `tests/test_rules.py`, `fixtures/` —
+steps 02 and 03.
 
-## What is decided
+## What is decided (`logs/SESSIONS.md` S-001…S-006)
 
-Four contradictions between the docs were found and closed by the user this
-session. All four are recorded in `logs/SESSIONS.md` with the doc patched in the
-same commit.
-
-1. **Sections = 3**, per `CLAUDE.md`: `tech` · `finance` · `world_india`
-2. **Ingest = RSS only**, the 35 frozen feeds in `SOURCES.md` §1. No arXiv,
-   Reddit, GitHub, Finnhub or CoinGecko in Phase 1
-3. **Front page = ~40 articles, 13 per section**
-4. **Research panel = Haiku 4.5 only** (`claude-haiku-4-5-20251001`). No Sonnet
-   "think harder" tier in Phase 1
+1. Sections = 3: `tech` · `finance` · `world_india`
+2. Ingest = RSS only, 35 frozen feeds
+3. Front page = 13/section × 3 = 39 (~40)
+4. Research panel = Haiku 4.5 only, no Sonnet tier
+5. Fixed 3 broken doc cross-refs + the "ship line" (01–09, not "1–5") + Python
+   stack recorded as 3.14 dev
+6. D-1 Rule 1 verbatim scopes to storage not render; D-2 Rule 6 names
+   `/research/*` as the sole network exception; D-3 robots disallow blocks
+   Wayback too; D-4 deleted the stale 15-min ingest worker
 
 ## What is next
 
-**Blocked on the user.** See `BLOCKED.md`. Two items, both gating step 01:
+Steps 02 (fixtures + harness) and 03 (`tests/test_rules.py`) — the oracle.
+Both must be demonstrated, not just built: for step 03 specifically, each rule
+test must be shown catching a real violation (break it, watch red, restore)
+before it counts, per Prompt 2. **Stop after step 03. Do not continue to 04**
+until the user has watched this and autonomous mode is explicitly authorized.
 
-1. Python version — `CLAUDE.md` pins 3.12; only 3.14.3 and 3.13 are installed
-2. Credentials — Anthropic key, archive.org S3, Guardian key
+## Known, non-blocking issue
 
-Once unblocked, the sequence is fixed by `ARCHITECTURE.md` §8 and does not vary:
-
-```
-01  feed audit          ← NOT code. Fetch 35 feeds once, record has_full_text
-02  fixtures + harness  ← the oracle, part 1
-03  tests/test_rules.py ← the oracle, part 2
-```
-
-Steps 01–03 run **supervised** (Prompt 2). Autonomous mode (Prompt 3) is
-forbidden until the user has watched the rule tests catch real violations —
-`AUTONOMOUS-LOOP.md` precondition 8.
+7 of the 35 frozen feeds are currently unreachable (403/404/malformed) —
+`BLOCKED.md` B-004. Not fixed, not substituted, per `SOURCES.md` §1. Revisit
+once the front page (step 07) is real and its variety can be judged.
 
 ## Where I left off
 
-End of the planning session. The implementation plan was presented to the user
-in-conversation and awaits approval. Nothing was built.
-
-**On approval:** generate `REQUIREMENTS.md` with a `verify:` command on every
-line, then write `plans/01-feed-audit.md`, then run step 01.
+Step 01 fully green, committed, pushed. About to write `plans/02-fixtures.md`.
 
 ## Session-start ritual
 

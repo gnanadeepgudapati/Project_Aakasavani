@@ -1,0 +1,281 @@
+feeds:
+- name: The Hindu — national
+  url: https://www.thehindu.com/news/national/feeder/default.rss
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 60
+  _audited_at: '2026-08-09T03:19:27.732068+00:00'
+- name: The Hindu — business
+  url: https://www.thehindu.com/business/feeder/default.rss
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 60
+  _audited_at: '2026-08-09T03:19:29.091978+00:00'
+- name: The Hindu — sci-tech
+  url: https://www.thehindu.com/sci-tech/feeder/default.rss
+  section: tech
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 60
+  _audited_at: '2026-08-09T03:19:30.432777+00:00'
+- name: Times of India — top
+  url: https://timesofindia.indiatimes.com/rssfeedstopstories.cms
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 48
+  _audited_at: '2026-08-09T03:19:31.745002+00:00'
+- name: Livemint — news
+  url: https://www.livemint.com/rss/news
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 35
+  _audited_at: '2026-08-09T03:19:32.939934+00:00'
+- name: Livemint — markets
+  url: https://www.livemint.com/rss/markets
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 35
+  _audited_at: '2026-08-09T03:19:34.176116+00:00'
+- name: Livemint — companies
+  url: https://www.livemint.com/rss/companies
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 35
+  _audited_at: '2026-08-09T03:19:35.322884+00:00'
+- name: NDTV — top
+  url: https://feeds.feedburner.com/ndtvnews-top-stories
+  section: world_india
+  source_weight: 3
+  has_full_text: true
+  _audit_status: ok
+  _audit_entry_count: 20
+  _audited_at: '2026-08-09T03:19:36.523894+00:00'
+- name: NDTV — india
+  url: https://feeds.feedburner.com/ndtvnews-india-news
+  section: world_india
+  source_weight: 3
+  has_full_text: true
+  _audit_status: ok
+  _audit_entry_count: 20
+  _audited_at: '2026-08-09T03:19:37.893383+00:00'
+- name: Hindustan Times — india
+  url: https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 100
+  _audited_at: '2026-08-09T03:19:39.266857+00:00'
+- name: Indian Express — india
+  url: https://indianexpress.com/section/india/feed/
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 200
+  _audited_at: '2026-08-09T03:19:40.560182+00:00'
+- name: Business Standard
+  url: https://www.business-standard.com/rss/home_page_top_stories.rss
+  section: finance
+  source_weight: 3
+  has_full_text: null
+  _audit_status: http_error_403
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:19:41.739802+00:00'
+- name: Economic Times
+  url: https://economictimes.indiatimes.com/rssfeedstopstories.cms
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 51
+  _audited_at: '2026-08-09T03:19:42.916137+00:00'
+- name: The Print
+  url: https://theprint.in/feed/
+  section: world_india
+  source_weight: 3
+  has_full_text: null
+  _audit_status: no_entries (bozo)
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:19:45.959106+00:00'
+- name: Scroll.in
+  url: https://scroll.in/feed
+  section: world_india
+  source_weight: 3
+  has_full_text: null
+  _audit_status: no_entries (bozo)
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:19:48.223811+00:00'
+- name: PIB (govt. releases)
+  url: https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3
+  section: world_india
+  source_weight: 3
+  has_full_text: null
+  _audit_status: http_error_403
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:19:50.960394+00:00'
+- name: AP — top
+  url: https://apnews.com/hub/ap-top-news.rss
+  section: world_india
+  source_weight: 3
+  has_full_text: null
+  _audit_status: http_error_404
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:19:52.034095+00:00'
+- name: BBC — world
+  url: https://feeds.bbci.co.uk/news/world/rss.xml
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 30
+  _audited_at: '2026-08-09T03:19:53.243299+00:00'
+- name: Al Jazeera
+  url: https://www.aljazeera.com/xml/rss/all.xml
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 25
+  _audited_at: '2026-08-09T03:19:54.350312+00:00'
+- name: Guardian — world
+  url: https://www.theguardian.com/world/rss
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 45
+  _audited_at: '2026-08-09T03:19:55.614139+00:00'
+- name: NYT — world
+  url: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+  section: world_india
+  source_weight: 3
+  has_full_text: true
+  _audit_status: ok
+  _audit_entry_count: 55
+  _audited_at: '2026-08-09T03:19:56.801316+00:00'
+- name: NPR
+  url: https://feeds.npr.org/1004/rss.xml
+  section: world_india
+  source_weight: 3
+  has_full_text: true
+  _audit_status: ok
+  _audit_entry_count: 10
+  _audited_at: '2026-08-09T03:19:57.937079+00:00'
+- name: DW
+  url: https://rss.dw.com/rdf/rss-en-world
+  section: world_india
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 12
+  _audited_at: '2026-08-09T03:19:59.061959+00:00'
+- name: TechCrunch
+  url: https://techcrunch.com/feed/
+  section: tech
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 20
+  _audited_at: '2026-08-09T03:20:00.198498+00:00'
+- name: The Verge
+  url: https://www.theverge.com/rss/index.xml
+  section: tech
+  source_weight: 3
+  has_full_text: true
+  _audit_status: ok
+  _audit_entry_count: 10
+  _audited_at: '2026-08-09T03:20:01.305347+00:00'
+- name: Ars Technica
+  url: https://feeds.arstechnica.com/arstechnica/index
+  section: tech
+  source_weight: 3
+  has_full_text: true
+  _audit_status: ok
+  _audit_entry_count: 20
+  _audited_at: '2026-08-09T03:20:02.471294+00:00'
+- name: Hacker News (100+ pts)
+  url: https://hnrss.org/newest?points=100
+  section: tech
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 20
+  _audited_at: '2026-08-09T03:20:06.267524+00:00'
+- name: Lobsters
+  url: https://lobste.rs/rss
+  section: tech
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 25
+  _audited_at: '2026-08-09T03:20:07.425143+00:00'
+- name: Simon Willison
+  url: https://simonwillison.net/atom/everything/
+  section: tech
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 30
+  _audited_at: '2026-08-09T03:20:08.664262+00:00'
+- name: Anthropic news
+  url: https://www.anthropic.com/news/rss.xml
+  section: tech
+  source_weight: 3
+  has_full_text: null
+  _audit_status: http_error_404
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:20:09.888812+00:00'
+- name: Hugging Face blog
+  url: https://huggingface.co/blog/feed.xml
+  section: tech
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 835
+  _audited_at: '2026-08-09T03:20:11.213667+00:00'
+- name: CNBC
+  url: https://www.cnbc.com/id/100003114/device/rss/rss.html
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 30
+  _audited_at: '2026-08-09T03:20:12.326908+00:00'
+- name: MarketWatch
+  url: https://feeds.content.dowjones.io/public/rss/mw_topstories
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 10
+  _audited_at: '2026-08-09T03:20:13.415486+00:00'
+- name: Moneycontrol
+  url: https://www.moneycontrol.com/rss/latestnews.xml
+  section: finance
+  source_weight: 3
+  has_full_text: null
+  _audit_status: http_error_403
+  _audit_entry_count: 0
+  _audited_at: '2026-08-09T03:20:14.511957+00:00'
+- name: BBC — business
+  url: https://feeds.bbci.co.uk/news/business/rss.xml
+  section: finance
+  source_weight: 3
+  has_full_text: false
+  _audit_status: ok
+  _audit_entry_count: 53
+  _audited_at: '2026-08-09T03:20:15.650687+00:00'

@@ -1,0 +1,26 @@
+[project]
+name = "aakasavani"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "feedparser>=6.0.14",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Added as later steps need them - not required for step 01.
+extract = ["trafilatura>=2.2.0"]
+web = ["fastapi>=0.141", "jinja2>=3.1", "uvicorn>=0.34"]
+llm = ["anthropic>=0.121"]
+dev = ["pytest>=8.0", "ruff>=0.8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

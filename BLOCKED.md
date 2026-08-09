@@ -8,6 +8,43 @@ Things needed from the user. In autonomous mode this file replaces asking.
 
 ## OPEN
 
+### B-004 · 7 of the 35 frozen feeds are unreachable — step 01 audit result
+
+**Raised:** 2026-08-09, step 01 (`scripts/audit_feeds.py`, live run against the
+real internet)
+**Blocks:** nothing — the other 28 feeds work, and `ARCHITECTURE.md` §5 already
+specifies degraded handling for a dead/blocked feed. Flagged per `SOURCES.md`
+§1's explicit instruction: **"do not silently swap in another."**
+**Needed from user:** nothing required to keep building. Optional — if you know
+a fix for any of these (e.g. the correct current URL), say so and I'll treat
+it as an architectural change, logged in `logs/SESSIONS.md`, not a silent edit.
+
+| Feed | URL | Section | Result | Likely cause |
+|---|---|---|---|---|
+| Business Standard | `https://www.business-standard.com/rss/home_page_top_stories.rss` | finance | `403` | Bot-blocking. Matches `SOURCES.md` §6's warning about Cloudflare default-blocking mixed-use crawlers |
+| PIB (govt. releases) | `https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3` | world_india | `403` | Same — government sites are commonly behind aggressive WAFs |
+| Moneycontrol | `https://www.moneycontrol.com/rss/latestnews.xml` | finance | `403` | Same |
+| AP — top | `https://apnews.com/hub/ap-top-news.rss` | world_india | `404` | URL likely stale. AP has changed RSS paths before; the frozen URL may predate a restructure |
+| Anthropic news | `https://www.anthropic.com/news/rss.xml` | tech | `404` | Same — `/news/rss.xml` returns 404; the feed may have moved or been retired |
+| The Print | `https://theprint.in/feed/` | world_india | malformed (`bozo`, 0 entries) | feedparser couldn't parse a valid item — possibly a redirect to a non-RSS page, or a schema change |
+| Scroll.in | `https://scroll.in/feed` | world_india | malformed (`bozo`, 0 entries) | Same |
+
+**What I did, and deliberately didn't do:** recorded the failure in
+`data/feeds.yaml` (`_audit_status`, `has_full_text: null`) and stopped — no
+retries beyond the one built-in timeout retry, no header spoofing, no trying a
+different URL pattern to "fix" the 404s. Guessing a replacement URL would be
+exactly the silent substitution `SOURCES.md` §1 forbids, and working around a
+403 would cross into the bot-detection evasion Rule 8 forbids outright.
+
+**Effect on the section counts:** `world_india` and `finance` each lose some
+real capacity until/unless these are resolved — 5 of the 17 `world_india` feeds
+and 3 of the 9 `finance` feeds are currently down. `tech` is least affected (1
+of 9). Not a blocker for steps 02–09, since the pipeline is built to handle a
+reduced or failing feed set (`ARCHITECTURE.md` §5) — worth knowing before
+judging the front page's variety once step 07 ships, though.
+
+---
+
 ### B-003 · Deployment Python version — install 3.14 on the VPS, or pin to 3.12 there?
 
 **Raised:** 2026-08-09

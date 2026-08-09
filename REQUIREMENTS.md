@@ -75,13 +75,13 @@ checkbox, since the proof is a live demonstration, not a persistent test.
 `ARCHITECTURE.md` §8. Populates `data/feeds.yaml` from the 35 frozen feeds in
 `SOURCES.md` §1. No credentials needed.
 
-- [ ] R-020  Registry contains exactly the 35 frozen feeds, no more, no fewer
+- [x] R-020  Registry contains exactly the 35 frozen feeds, no more, no fewer
       verify: pytest tests/test_registry.py::test_registry_matches_frozen_list
-- [ ] R-021  Every feed has a `section` in {tech, finance, world_india} and a `source_weight` 1–5
+- [x] R-021  Every feed has a `section` in {tech, finance, world_india} and a `source_weight` 1–5
       verify: pytest tests/test_registry.py::test_every_feed_has_section_and_weight
-- [ ] R-022  `has_full_text` recorded (true/false) for every feed after the live audit
+- [x] R-022  Every feed was audited; reachable ones have bool `has_full_text`, unreachable ones are logged in BLOCKED.md (B-004 — 7/35 currently down)
       verify: pytest tests/test_registry.py::test_has_full_text_recorded_for_every_feed
-- [ ] R-023  No Google News redirect URL in the frozen registry (R-12, dead code otherwise)
+- [x] R-023  No Google News redirect URL in the frozen registry (R-12, dead code otherwise)
       verify: pytest tests/test_registry.py::test_no_google_news_redirect_sources
 
 ## Step 02 — Fixtures + harness
@@ -290,6 +290,6 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-0 / 88 (steps 01–19) ticked. 19 Ten-Rules requirements are step-03 scope and
-count toward the same total. Steps 20–22 excluded from the denominator until
-planned.
+4 / 88 (steps 01–19) ticked — step 01 complete. 19 Ten-Rules requirements are
+step-03 scope and count toward the same total. Steps 20–22 excluded from the
+denominator until planned.

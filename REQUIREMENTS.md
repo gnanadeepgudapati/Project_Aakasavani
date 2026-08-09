@@ -54,9 +54,9 @@ the whole build is done** — see `plans/03-rules.md`.
 - [x] R-007  Rule 4 — no Anthropic import reachable from the build path (static)
       verify: pytest tests/test_rules.py::test_no_llm_import_in_build_path
       (vacuous until app.edition.build exists, step 07 — same walker as R-001)
-- [ ] R-008  Rule 5 — sweep strips title/description/source, keeps hash, sets expired=1
+- [x] R-008  Rule 5 — sweep strips title/description/source, keeps hash, sets expired=1
       verify: pytest tests/test_rules.py::test_sweep_strips_text_keeps_hash
-- [ ] R-009  Rule 5 — `read` rows survive any TTL sweep, at any clock offset
+- [x] R-009  Rule 5 — `read` rows survive any TTL sweep, at any clock offset
       verify: pytest tests/test_rules.py::test_read_rows_never_expire
 - [x] R-010  Rule 6 — reading routes make no outbound HTTP; `/research/*` is the sole exception
       (the /research/* half of this proof is deferred to step 15 - see test docstring)
@@ -223,22 +223,22 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 11 — Internet Archive queue
 
-- [ ] R-065  Every front-page article is enqueued to `ia_queue`
+- [x] R-065  Every front-page article is enqueued to `ia_queue`
       verify: pytest tests/test_ia.py::test_front_page_enqueued
-- [ ] R-066  Drain rate does not exceed 6/min
+- [x] R-066  Drain rate does not exceed 6/min
       verify: pytest tests/test_ia.py::test_rate_six_per_minute
-- [ ] R-067  Failed captures retry ≤3 times then are abandoned, not retried forever
+- [x] R-067  Failed captures retry ≤3 times then are abandoned, not retried forever
       verify: pytest tests/test_ia.py::test_retries_thrice_then_abandons
-- [ ] R-068  IA queueing never blocks a request/response cycle
+- [x] R-068  IA queueing never blocks a request/response cycle
       verify: pytest tests/test_ia.py::test_never_blocks_request
 
 ## Step 12 — TTL sweep + nightly backup
 
-- [ ] R-069  Sweep job strips text and keeps the hash (integration-level, vs. R-008's unit-level rule test)
+- [x] R-069  Sweep job strips text and keeps the hash (integration-level, vs. R-008's unit-level rule test)
       verify: pytest tests/test_sweep.py::test_sweep_strips_keeps_hash
-- [ ] R-070  Running the sweep twice is a no-op the second time
+- [x] R-070  Running the sweep twice is a no-op the second time
       verify: pytest tests/test_sweep.py::test_sweep_idempotent
-- [ ] R-071  Backup file opens and reads correctly (via `.backup()` API, not CLI — R-2)
+- [x] R-071  Backup file opens and reads correctly (via `.backup()` API, not CLI — R-2)
       verify: pytest tests/test_sweep.py::test_backup_is_readable
 
 ## Step 13 — Past editions
@@ -310,7 +310,10 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-65 / 88 (steps 01–19) ticked — steps 01–10 complete (17/19 Ten Rules genuinely
-closed; 2 pending step 12 + a final violation-demonstration pass). 19 Ten-Rules requirements are
+74 / 88 (steps 01–19) ticked — steps 01–12 complete. **All 19 Ten Rules
+tests now pass naturally** — every dependent module exists. A final
+violation-demonstration pass (breaking each real implementation, confirming
+red, restoring) is still owed for the 13 not yet individually demonstrated —
+see `plans/00-implementation-plan.md` task tracking. 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

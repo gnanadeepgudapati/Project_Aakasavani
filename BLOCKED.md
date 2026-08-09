@@ -52,7 +52,82 @@ no one has watched a real 04:00 build run yet.
 
 ## OPEN
 
+### B-007 · Front-page content quality — three problems visible in the first real edition
+
+**Raised:** 2026-08-09, after the first real build. **Blocks:** nothing.
+**Needed:** product decisions. All three are *mine to fix once you choose* —
+none require changing the frozen feed list.
+
+**1. Economic Times is a general feed filed under `finance`.** Its frozen URL
+is `rssfeedstopstories.cms` — top stories, not markets. So Finance currently
+carries cricket ("Australia top WTC table"), politics ("Govt extends ED
+Director's tenure"), and US politics. 5 of Finance's 13 slots come from it.
+`feeds.section` is **our** assignment, not the outlet's (S-001), so moving it
+to `world_india` is not a frozen-list change. Livemint/Business Standard/The
+Hindu-business remain genuine finance feeds.
+**Recommendation: reassign Economic Times → `world_india`.**
+
+**2. One high-frequency feed dominates each section.** Recency-only ranking
+means whoever publishes most wins: Lobsters took 7 of 13 tech slots, The
+Hindu — national took 9 of 13 world_india. `EDITION-AND-UI.md` calls the
+ranking "deliberately dumb" and defers tuning until `dwell_seconds` exists —
+but a per-feed cap (say max 3–4 per section) is a one-line change that
+doesn't require any ranking intelligence.
+**Recommendation: add a per-feed cap. Ranking beyond that stays deferred.**
+
+**3. Lobsters entries make poor lead stories.** The current tech hero is
+"postmarketOS in 2026-07: libcamera 0.7.2" with the description "Comments" —
+Lobsters' RSS `<description>` is often just a link label. Fixing #2 largely
+fixes this by accident. A `source_weight` bump for editorial outlets is the
+in-spec lever (`EDITION-AND-UI.md`: "hand-edit the source weights when the
+front page looks wrong"); all 35 are still at the default 3.
+
+---
+
+### B-006 · Article body renders raw Markdown syntax
+
+**Raised:** 2026-08-09. **Blocks:** nothing, but it is visible on every article.
+
+`app/extract/article.py` pins Trafilatura to `output_format="markdown"`, and
+`article.html` renders that string as pre-wrapped plain text — so readers see
+literal `**TechCrunch Mobility**` and `*Welcome back…*`.
+
+Three options, and this needs a decision because **Rule 3 ("articles shown
+whole and unaltered") constrains it**: (a) render the Markdown to HTML at
+display time — the text is unchanged, only presented, which I read as
+compatible with Rule 3 the same way `sanitize_description` is; (b) switch the
+extractor to `output_format="txt"` — changes what is *stored*, and would need
+R-005 re-verified; (c) leave it.
+**Recommendation: (a), rendered at display time only.**
+
+---
+
+### B-005 · A feed that returns 200 with malformed XML never auto-disables
+
+**Raised:** 2026-08-09 by the Track A agent, correctly escalated rather than
+decided unilaterally. **Blocks:** nothing.
+
+The Print and Scroll.in return real HTTP 200 with unparseable XML
+(feedparser `bozo=1`, zero entries). `parse_feed`'s contract is "never raise
+on malformed XML", so this is indistinguishable from "success, no new items"
+— `fail_count` never increments, so unlike a 403/404 feed these are **never
+auto-disabled** and will be polled forever. `ARCHITECTURE.md` §5's failure
+table only names "404 / timeout", so extending "failure" to cover
+persistently-bozo-with-zero-entries is a **spec change**, not a bug fix.
+Locked in with a regression test (R-109) documenting current behaviour.
+
+**Recommendation:** count "200 + bozo + zero entries" as a failure for
+`fail_count` purposes, and patch `ARCHITECTURE.md` §5 in the same commit.
+
+---
+
 ### B-004 · 7 of the 35 frozen feeds are unreachable — step 01 audit result
+
+> **Partially stale as of 2026-08-09's real run.** Only **5** feeds actually
+> fail at the HTTP level: Business Standard, PIB, Moneycontrol (403), AP,
+> Anthropic news (404). The Print and Scroll.in **are reachable** — they
+> return 200 with malformed XML, which is a different problem, now tracked
+> separately as **B-005**.
 
 **Raised:** 2026-08-09, step 01 (`scripts/audit_feeds.py`, live run against the
 real internet)

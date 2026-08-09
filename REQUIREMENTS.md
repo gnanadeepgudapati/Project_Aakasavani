@@ -314,10 +314,118 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ---
 
+---
+
+## Step 23 — Feed registry sync + poll hardening (fixes D-1…D-5)
+
+- [x] R-089  `sync_feeds_to_db` inserts every `feeds.yaml` entry into `feeds`
+      verify: pytest tests/test_registry.py::test_sync_inserts_every_yaml_feed
+- [x] R-090  Sync preserves `etag`/`last_modified`/`fail_count`/`enabled` on existing rows
+      verify: pytest tests/test_registry.py::test_sync_preserves_poll_state_on_existing_rows
+- [x] R-091  A feed whose fetch raises does not abort the poll
+      verify: pytest tests/test_edition.py::test_failing_feed_does_not_abort_poll
+- [x] R-092  `fail_count` increments on failure, resets to 0 on success
+      verify: pytest tests/test_edition.py::test_fail_count_increments_and_resets
+- [x] R-093  A feed is disabled once `fail_count` reaches 10
+      verify: pytest tests/test_edition.py::test_feed_disabled_at_ten_consecutive_failures
+- [x] R-094  Default feed fetch sends `If-None-Match`/`If-Modified-Since`
+      verify: pytest tests/test_fetcher.py::test_default_feed_fetch_sends_conditional_headers_and_handles_304
+- [x] R-095  `poll_all_feeds` round-trips stored `etag`/`last_modified`
+      verify: pytest tests/test_edition.py::test_conditional_get_roundtrip
+- [x] R-096  HTTP 304 is success, not a failure
+      verify: pytest tests/test_edition.py::test_304_is_success_not_failure
+- [x] R-097  **Rule 8** — feed polling's real default path routes through the shared limiter
+      verify: pytest tests/test_rules.py::test_feed_polling_routes_through_shared_limiter
+
+## Step 24 — Fetcher wiring + metadata completeness (fixes D-6…D-8)
+
+- [x] R-098  `default_fetcher()` returns a `Fetcher` with a non-`None` `robots_cache`
+      verify: pytest tests/test_fetcher.py::test_default_fetcher_has_a_real_robots_cache
+- [x] R-099  `_default_robots_fetch` routes through the shared limiter
+      verify: pytest tests/test_fetcher.py::test_default_robots_fetch_routes_through_shared_limiter
+- [x] R-100  **Rule 8** — the real build path respects `robots.txt` (no fetcher injected)
+      verify: pytest tests/test_rules.py::test_real_build_path_respects_robots_txt
+- [x] R-101  `og:image` from already-fetched page bytes fills `seen.image_url` only when the feed gave none
+      verify: pytest tests/test_parser.py::test_extract_og_image tests/test_edition.py::test_og_image_populated_only_when_feed_gave_none
+- [x] R-102  `read_minutes = ceil(words / 220)` computed and stored
+      verify: pytest tests/test_edition.py::test_read_minutes_computed_from_prefetched_word_count
+
+## Step 25 — Operational entrypoints + the live test
+
+- [x] R-103  `scripts/run_build.py` syncs the registry and produces a live edition
+      verify: pytest tests/test_scripts.py::test_run_build_syncs_registry_and_produces_a_live_edition tests/test_scripts.py::test_run_build_exits_nonzero_on_unhandled_failure
+- [x] R-104  `scripts/run_topup.py` adds headlines without creating an edition
+      verify: pytest tests/test_scripts.py::test_run_topup_adds_headlines_without_creating_an_edition
+- [x] R-105  `scripts/run_sweep.py` and `run_backup.py` work and exit 0
+      verify: pytest tests/test_scripts.py::test_run_sweep_strips_expired_rows tests/test_scripts.py::test_run_backup_creates_a_dated_backup_file
+- [x] R-106  `tests/test_live.py` exists and is excluded from the default run
+      verify: pytest --collect-only -q | grep -c test_live || true   # MANUAL: pytest tests/test_live.py
+
+## Step 26 — First real run
+
+- [x] R-107  A real run against the 35 frozen feeds produces a live edition
+      verify: **manual** — `python scripts/run_build.py --db aakasavani.db`; verified 2026-08-09, 39 articles, `read_minutes=182`
+- [x] R-108  Dead/blocked feeds fail gracefully without aborting the build
+      verify: **manual**, same run — 5 feeds failed (403/404), `fail_count` incremented, build completed
+- [x] R-109  A 200-with-unparseable-XML feed is not miscounted as a failure
+      verify: pytest tests/test_edition.py::test_200_with_unparseable_xml_is_not_counted_as_a_failure
+- [ ] R-110  *(reserved, unused)*
+
+## Step 27 — UI completion (fixes G-1…G-4)
+
+- [x] R-111  Topic chip filters the front page, retroactively across all of `seen`
+      verify: pytest tests/test_feed_view.py::test_topic_chip_filters_front_page
+- [x] R-112  Topic and section chips combine
+      verify: pytest tests/test_feed_view.py::test_topic_and_section_combine
+- [x] R-113  Migration 004 seeds the four canonical topics
+      verify: pytest tests/test_topics.py::test_seed_migration_creates_four_topics
+- [x] R-114  `POST /topics` creates and filters; duplicate name → 400
+      verify: pytest tests/test_topics.py::test_new_topic_route_creates_and_filters tests/test_topics.py::test_new_topic_route_rejects_duplicate_name
+- [x] R-115  `GET /search?q=` renders matches
+      verify: pytest tests/test_search.py::test_search_route_renders_matches
+- [x] R-116  Search route excludes unread `seen`-only matches
+      verify: pytest tests/test_search.py::test_search_route_excludes_unread
+- [x] R-117  Empty/blank query doesn't crash (function and route)
+      verify: pytest tests/test_search.py::test_empty_query_no_crash tests/test_search.py::test_search_route_empty_query_no_crash
+- [x] R-118  Density controls present and `localStorage`-backed
+      verify: pytest tests/test_ui.py::test_density_toggle_controls_present tests/test_ui.py::test_density_persisted_via_localstorage_key
+- [x] R-119  Compact hides images; Visual gives thumbnails hero treatment
+      verify: pytest tests/test_ui.py::test_compact_density_hides_images tests/test_ui.py::test_visual_density_gives_thumbnails_hero_treatment
+- [x] R-120  Research panel present, three tabs, closed by default
+      verify: pytest tests/test_article_view.py::test_research_panel_present_and_closed
+- [x] R-121  **Rule 4** — cached starter questions never inlined into article HTML
+      verify: pytest tests/test_panel.py::test_starter_questions_never_inlined_in_article_html
+- [x] R-122  **Rule 4** — opening an article writes zero `llm_spend` rows
+      verify: pytest tests/test_panel.py::test_article_view_makes_zero_llm_spend
+- [x] R-123  Panel width persisted in `localStorage`
+      verify: pytest tests/test_ui.py::test_panel_width_persisted_in_localstorage
+- [x] R-124  Ask degrades gracefully when the budget is exceeded
+      verify: pytest tests/test_panel.py::test_ask_budget_exceeded_is_graceful
+- [x] R-125  Timeline degrades when providers are unavailable
+      verify: pytest tests/test_panel.py::test_timeline_route_degrades_gracefully
+- [x] R-126  Explain sends only the user's selection
+      verify: pytest tests/test_ui.py::test_explain_js_sends_selection_only
+- [x] R-127  Hero and thumbnail images collapse on load error
+      verify: pytest tests/test_ui.py::test_images_collapse_on_error
+- [x] R-128  Ask degrades with no API key, and the network guard still propagates
+      verify: pytest tests/test_panel.py::test_ask_with_no_api_key_is_graceful tests/test_panel.py::test_network_guard_failure_still_propagates
+- [x] R-129  Starter questions degrade with no API key
+      verify: pytest tests/test_panel.py::test_starter_questions_with_no_api_key_is_graceful
+- [x] R-130  Explain degrades with no API key
+      verify: pytest tests/test_panel.py::test_explain_with_no_api_key_is_graceful
+
 ## Progress
 
-**88 / 88 (steps 01–19) ticked. All of Phase 1's currently-planned scope is
-complete and green.** A final violation-demonstration pass on the 13
+**129 / 130 ticked (steps 01–19 and 23–27). R-110 is a reserved, unused ID.**
+Full suite: **139 passing.** A real edition has been built from the live
+35 feeds and served — see `plans/26-*.md` and `logs/SESSIONS.md` S-009.
+
+Historic note, kept because it is the most useful lesson in this file:
+**88/88 passed while the product could not pull real data at all.** Every
+test injected a fake; nothing exercised the assembly. Steps 23–27 fixed 8
+pipeline defects and 4 missing UI features that a green suite had hidden.
+
+Prior milestone (steps 01–19): A final violation-demonstration pass on the 13
 Ten-Rules tests not yet individually proven (see the note at the top of that
 section) is the one remaining item before this checklist is fully honest, not
 just fully ticked. Steps 20–22 (deep history, ranking, mobile) remain

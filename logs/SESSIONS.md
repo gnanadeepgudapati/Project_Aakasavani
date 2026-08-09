@@ -13,6 +13,47 @@ lets the authoritative docs stay wrong defeats its own purpose.
 
 ---
 
+## 2026-08-09 · Steps 23–27, built by two parallel agents
+
+### S-009 · Steps 23–28 added to the build order; 8 defects + 4 UI gaps closed
+
+**Decided:** `ARCHITECTURE.md` §8's build order is extended with steps 23–28
+(registry sync + poll hardening, fetcher wiring + metadata, operational
+entrypoints, first real run, UI completion, deploy). Not a second build
+order — `CLAUDE.md` forbids that — an amendment to the existing one.
+
+**Replaces:** the implicit assumption that steps 01–19 completing meant the
+product worked.
+
+**Reasoning:** all 88 requirements passed and the app could not pull real
+data at all. Root cause: every component was tested in isolation against an
+injected fake, and the assembly was never built or tested.
+`tests/test_live.py` — named in `plans/00-implementation-plan.md` from the
+first planning session as the guard against exactly this — was never
+written, because no `REQUIREMENTS.md` line demanded it. Full analysis in
+`plans/00b-real-data-and-ui-plan.md` §0.
+
+**Two of the eight defects were Rule 8 violations on the real path**: feed
+polling bypassed the shared limiter entirely (`_default_http_get` called
+directly), and `robots_cache` was never passed to the production `Fetcher`.
+Both had correct, tested logic that production simply did not use. R-097 and
+R-100 are new Ten-Rules tests that exercise the **real default wiring** with
+nothing injected — the class of test that would have caught them originally.
+
+**Method:** two agents in isolated git worktrees, disjoint file ownership and
+requirement-ID ranges (A: R-089…R-110, B: R-111…R-130), merged with zero
+conflicts. Bookkeeping files were withheld from both and reconciled here.
+
+**Verified:** 139 tests pass; a real build against the 35 frozen feeds
+produced a live 39-article edition (1,931 `seen` rows, 60 sources, 34/39
+pre-fetched, 36/39 with images, `read_minutes=182`), with 5 dead feeds
+failing gracefully without aborting.
+
+**Docs patched:** `ARCHITECTURE.md` §8 (steps 23–28), `REQUIREMENTS.md`
+(R-089…R-130), `CONTEXT.md`, `BLOCKED.md`.
+
+---
+
 ## 2026-08-09 · Approval to build (Prompt 2 start)
 
 User approved `plans/00-implementation-plan.md` and said "start the build,"

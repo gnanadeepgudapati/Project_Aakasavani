@@ -484,6 +484,18 @@ the user clicks. There is no LLM anywhere in the reading path.
 | 20 | Deep history | BigQuery, Guardian API |
 | 21 | Ranking | uses `dwell_seconds` logged since step 09 |
 | 22 | Mobile | Phase 3. Same API, different client |
+| 23 | **Feed registry sync + poll hardening** | `feeds.yaml` → `feeds` table; per-feed error handling, `fail_count`/auto-disable, conditional GET; **feed polling through the shared limiter** |
+| 24 | **Fetcher wiring + metadata** | Real `robots_cache` in production `Fetcher`; `og:image`; `read_minutes` |
+| 25 | **Operational entrypoints** | `scripts/run_{build,topup,sweep,backup}.py`; **`tests/test_live.py`** |
+| 26 | **First real run** | Against the 35 frozen feeds. Triage what fixtures missed |
+| 27 | **UI completion** | Research panel, topic chips, search page, density toggle |
+| 28 | Deploy | VPS, Caddy, cron, basic auth |
+
+**Steps 23–27 exist because steps 01–19 passed 88/88 requirements while the
+product could not pull real data at all** — every test injected a fake and
+nothing exercised the assembly. Two of the defects they fix were Rule 8
+violations on the real path. See `logs/SESSIONS.md` S-009 and
+`plans/00b-real-data-and-ui-plan.md`.
 
 **Steps 01–09 are the product.** A finished edition, filterable, opening
 instantly. Ship that, use it for two weeks, then decide whether 10–22 are still

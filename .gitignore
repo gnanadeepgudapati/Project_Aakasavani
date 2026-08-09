@@ -1,6 +1,9 @@
 # ── Loop memory — local state, not repo content ──────────────────
 .workflow/
 
+# ── Agent worktrees (transient, created by parallel subagents) ────
+.claude/
+
 # ── Database ─────────────────────────────────────────────────────
 *.db
 *.db-wal

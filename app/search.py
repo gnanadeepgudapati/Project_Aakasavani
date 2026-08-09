@@ -10,6 +10,10 @@ import sqlite3
 
 
 def search_read(conn: sqlite3.Connection, query: str) -> list[sqlite3.Row]:
+    # An empty/blank query has no meaningful match and FTS5's MATCH raises
+    # sqlite3.OperationalError on '' - fail soft to no results, not a 500.
+    if not query or not query.strip():
+        return []
     return conn.execute(
         "SELECT r.* FROM read r "
         "JOIN read_fts f ON f.rowid = r.rowid "

@@ -1,4 +1,11 @@
-"""Step 15 acceptance tests. REQUIREMENTS.md R-080..R-082."""
+"""Step 15 acceptance tests. REQUIREMENTS.md R-080..R-082.
+
+Step 27 additions (plans/27-ui-completion.md, G-1): R-121, R-122, R-124,
+R-125 - the reading path (article view) makes zero LLM calls and never
+inlines cached starter questions; the panel's HTTP endpoints degrade
+gracefully (budget-exceeded, timeline-provider-unavailable) instead of
+crashing, since nothing wires them to the page yet except this step.
+"""
 
 import json
 
@@ -182,3 +189,142 @@ def test_explain_uses_selection(client, db_conn, monkeypatch):
 
     assert received["selection"] == "a highlighted phrase"
     assert ARTICLE not in received["selection"], "explain must not smuggle in the full article"
+
+
+# ── Step 27 (plans/27-ui-completion.md, G-1) ─────────────────────────────
+
+def test_starter_questions_never_inlined_in_article_html(client, db_conn):
+    """R-121. EDITION-AND-UI.md §3.3 + Rule 4: starter questions are cached
+    in read.starter_questions after first fetch, but the article page must
+    NEVER inline them - they're only ever delivered through the dedicated
+    /research/{hash}/starter-questions JSON endpoint, fetched by client JS
+    on an explicit panel-open click. A cached question leaking into the
+    server-rendered article HTML would mean it was pushed, not pulled."""
+    cached = ["A very specific cached question about paragraph two?"]
+    _seed_read(db_conn, starter_questions=json.dumps(cached))
+
+    resp = client.get(f"/article/{URL_HASH_HEX}")
+    assert resp.status_code == 200
+    assert cached[0] not in resp.text
+
+
+def test_article_view_makes_zero_llm_spend(client, db_conn):
+    """R-122. Rule 4: opening an article is the reading path, not the
+    panel. Regression guard at the integration level - R-001's static
+    check already proves app.web.routes can't reach anthropic; this proves
+    the dynamic consequence: zero rows land in llm_spend from a plain
+    article open."""
+    _seed_read(db_conn)
+
+    resp = client.get(f"/article/{URL_HASH_HEX}")
+    assert resp.status_code == 200
+
+    count = db_conn.execute("SELECT COUNT(*) FROM llm_spend").fetchone()[0]
+    assert count == 0
+
+
+def test_ask_budget_exceeded_is_graceful(client, db_conn, frozen_clock):
+    """R-124. When the daily cap is already spent, /ask must respond 200
+    with an {"error": ...} body the panel can render - never a 500."""
+    _seed_read(db_conn)
+
+    # Push the daily spend over app.config.DAILY_USD_CAP ($2.00) directly,
+    # rather than monkeypatching app.research.budget (not owned here) -
+    # this is exactly how a real day of panel use would trip the cap.
+    db_conn.execute(
+        "INSERT INTO llm_spend (ts, model, purpose, usd_cost) VALUES (?, 'claude-haiku-4-5-20251001', 'question', 3.00)",
+        (int(frozen_clock.now().timestamp()),),
+    )
+    db_conn.commit()
+
+    resp = client.post(f"/research/{URL_HASH_HEX}/ask", json={"question": "What happened?"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "error" in data and data["error"]
+
+
+def test_ask_with_no_api_key_is_graceful(client, db_conn, monkeypatch):
+    """R-128. The real, most likely Phase-1 failure mode named directly in
+    the brief: no ANTHROPIC_API_KEY is configured at all (BLOCKED.md
+    B-002), and nothing monkeypatches _default_ask_call. The Anthropic SDK
+    then fails LOCALLY at header/credential validation, before attempting
+    any connection at all (test_rules.py's own R-010 docstring establishes
+    this exact fact) - so this is safe to exercise for real, without
+    touching the network guard or violating "tests never touch the
+    network". Today this is an unhandled TypeError -> raw 500; the panel
+    must show a clean, honest state instead."""
+    _seed_read(db_conn)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    resp = client.post(f"/research/{URL_HASH_HEX}/ask", json={"question": "What happened?"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "error" in data and data["error"]
+
+
+def test_starter_questions_with_no_api_key_is_graceful(client, db_conn, monkeypatch):
+    """R-129. Same failure mode as R-128, for the starter-questions
+    endpoint - this is the one that fires FIRST on every panel open
+    (EDITION-AND-UI.md §3.3's lazy fetch), so it's the one a real user
+    would hit immediately with no key configured."""
+    _seed_read(db_conn)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    resp = client.get(f"/research/{URL_HASH_HEX}/starter-questions")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["questions"] == []
+    assert "error" in data and data["error"]
+
+
+def test_explain_with_no_api_key_is_graceful(client, db_conn, monkeypatch):
+    """R-130. Same failure mode as R-128/R-129, for the explain endpoint."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    resp = client.post(
+        f"/research/{URL_HASH_HEX}/explain", json={"selection": "some highlighted text"}
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "error" in data and data["error"]
+
+
+def test_network_guard_failure_still_propagates(client, db_conn, monkeypatch):
+    """R-128, continued - the guard-rail. The no-API-key fix above must NOT
+    become a blanket except-and-swallow that would also hide a REAL network
+    attempt - that's exactly what tests/test_rules.py::test_no_network_on_
+    reading_path (R-010, not owned/editable here) depends on: with a
+    syntactically-valid FAKE key, the SDK gets past local validation and
+    reaches the real, guard-intercepted connect(), and that exception must
+    still propagate OUT of the route, not get caught and turned into a
+    friendly 200. Reproduces R-010's own technique directly against /ask."""
+    _seed_read(db_conn)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-fake-for-network-guard-proof")
+
+    with pytest.raises(Exception) as excinfo:
+        client.post(f"/research/{URL_HASH_HEX}/ask", json={"question": "What happened?"})
+
+    cause_chain = []
+    cur = excinfo.value
+    while cur is not None:
+        cause_chain.append(type(cur).__name__)
+        cur = cur.__cause__ or cur.__context__
+    assert "NetworkAccessError" in cause_chain, (
+        f"a real network attempt must still propagate, not be swallowed; got {cause_chain}"
+    )
+
+
+def test_timeline_route_degrades_gracefully(client, db_conn):
+    """R-125. app/research/timeline.py's real providers all currently
+    raise NotImplementedError("not wired until deployment") - that module
+    is owned by the other build track and out of scope here. Called
+    unmocked (no wikipedia_fn/gdelt_fn/guardian_fn injected, i.e. exactly
+    what happens the first time a human opens the Timeline tab today), the
+    route must still respond cleanly, not with a raw 500 stack trace -
+    EDITION-AND-UI.md's "clean, honest state" bar applies here too, not
+    just to the missing-API-key case."""
+    resp = client.get(f"/research/{URL_HASH_HEX}/timeline?query=some+story")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["entries"] == []
+    assert "error" in data

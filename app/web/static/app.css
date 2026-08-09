@@ -22,15 +22,17 @@ body {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  flex-wrap: wrap;
   padding: 0.75rem 1.25rem;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   background: var(--bg);
+  z-index: 10;
 }
 .brand { font-weight: 700; color: var(--fg); text-decoration: none; }
 
-.chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.chips { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 .chip {
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
@@ -38,10 +40,75 @@ body {
   color: var(--fg);
   text-decoration: none;
   font-size: 0.9rem;
+  background: transparent;
+  cursor: pointer;
 }
 .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.topic-chips { margin-top: 0.35rem; }
 
-main { max-width: 760px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
+/* "+ new" topic disclosure - EDITION-AND-UI.md §2.3. */
+.new-topic-toggle { position: relative; }
+.new-topic-summary { list-style: none; }
+.new-topic-summary::-webkit-details-marker { display: none; }
+.new-topic-form {
+  position: absolute;
+  top: 2rem;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 240px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.new-topic-form input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.new-topic-form button {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.topic-banner { color: var(--muted); font-size: 0.9rem; margin: 0 0 1rem; }
+.topic-banner a { color: var(--accent); }
+
+/* Header controls - search box + density toggle, present on every page. */
+.header-controls { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
+.search-form input {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 0.85rem;
+  width: 11rem;
+}
+.density-toggle { display: flex; gap: 0.25rem; }
+.density-toggle button {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.density-toggle button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+main { max-width: 760px; margin: 0 auto; padding: 1rem 1.25rem 3rem; transition: max-width 0.15s ease; }
+body.panel-open main { max-width: 1200px; }
 
 .section-block { margin-bottom: 2rem; }
 .section-block h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
@@ -88,3 +155,164 @@ main { max-width: 760px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
 .article-full .meta { color: var(--muted); font-size: 0.85rem; }
 .article-full .body { white-space: pre-wrap; font-size: 1.02rem; margin-top: 1rem; }
 .honest-floor { color: var(--muted); }
+
+/* ── Density toggle - EDITION-AND-UI.md §6.5 ─────────────────────────────
+   Client-side only, no server round-trip: a data-density attribute on
+   <body>, set from localStorage by app.js. Comfortable (no attribute, or
+   data-density="comfortable") is the default and needs no override - the
+   unconditional rules above already ARE comfortable's behaviour. */
+
+/* Compact: "No images anywhere in the list. Fastest scan." */
+body[data-density="compact"] .hero-image,
+body[data-density="compact"] .thumb-image {
+  display: none;
+}
+
+/* Visual: "Hero treatment throughout, for leisurely reading." Reuses the
+   SAME <img> element already in the DOM - no extra markup, no extra
+   request, just a bigger frame and a bottom mask-fade instead of a right
+   one, matching the hero pattern above. */
+body[data-density="visual"] .row.thumb {
+  display: block;
+}
+body[data-density="visual"] .row.thumb .thumb-image {
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 0.5rem;
+  -webkit-mask-image: linear-gradient(to bottom, #000 46%, rgba(0,0,0,.35) 82%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 46%, rgba(0,0,0,.35) 82%, transparent 100%);
+}
+
+/* ── Search page (G-3) ────────────────────────────────────────────────── */
+.search-page-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.search-page-form input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 1rem;
+}
+.search-page-form button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.search-count { color: var(--muted); font-size: 0.9rem; }
+
+/* ── Research side panel - EDITION-AND-UI.md Part 3 ──────────────────────
+   Right-docked, NOT a modal (§3.1) - a flex sibling of the article, so the
+   article reflows to ~60% instead of being covered. */
+.article-layout { display: flex; align-items: flex-start; gap: 0; }
+.article-layout .article-full { flex: 1 1 100%; min-width: 0; }
+.article-layout.panel-open .article-full { flex: 1 1 60%; }
+
+.research-open-btn {
+  position: sticky;
+  top: 4.5rem;
+  float: right;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.article-layout.panel-open .research-open-btn { display: none; }
+
+.research-panel {
+  display: none;
+  position: relative;
+  flex: 0 0 0;
+  width: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  padding-left: 0;
+}
+.article-layout.panel-open .research-panel {
+  display: block;
+  flex: 0 0 40%;
+  width: 40%;
+  min-width: 280px;
+  max-width: 70vw;
+  padding-left: 1rem;
+}
+
+.panel-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+}
+.panel-resize-handle:hover { background: var(--accent); opacity: 0.3; }
+
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.panel-tabs { display: flex; gap: 0.25rem; }
+.panel-tabs .tab {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.panel-tabs .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.research-close-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.tab-panel { font-size: 0.92rem; }
+.summarise-btn, #explain-btn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 0.6rem;
+}
+.starter-questions { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+.starter-question {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+.ask-form { display: flex; gap: 0.4rem; margin-bottom: 0.6rem; }
+.ask-form input {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.ask-answer, .explain-result { color: var(--fg); white-space: pre-wrap; }
+.timeline-entry {
+  display: block;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+  text-decoration: none;
+}
+.timeline-date, .timeline-source { color: var(--muted); font-size: 0.8rem; }
+.hint { color: var(--muted); font-size: 0.85rem; }

@@ -1,4 +1,9 @@
-"""Step 08 acceptance tests. REQUIREMENTS.md R-054..R-058."""
+"""Step 08 acceptance tests. REQUIREMENTS.md R-054..R-058.
+
+Step 27 additions (plans/27-ui-completion.md, G-2): R-111, R-112 - topic
+chip filtering (`GET /?topic=`) and its composition with the existing
+section filter, at the HTTP route level.
+"""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -108,3 +113,30 @@ def test_show_everything_lists_remainder(client, db_conn):
     for i in range(2, 5):
         assert f"Remainder Story {i}" in html, "remainder articles must be listed, not dropped"
     assert "Show everything (3 more)" in html
+
+
+def test_topic_chip_filters_front_page(client, db_conn):
+    """R-111. Migration 004 seeds an "AI" topic
+    ('"artificial intelligence" OR LLM OR OpenAI OR Anthropic OR "machine
+    learning"'). Topic filtering is retroactive over ALL of `seen`
+    (EDITION-AND-UI.md §2.2), not scoped to today's edition front page - so
+    this deliberately does NOT call _seed_edition at all."""
+    _seed_article(db_conn, n=1, section="tech", title="OpenAI launches a new coding tool")
+    _seed_article(db_conn, n=2, section="tech", title="Local council raises parking fees")
+
+    resp = client.get("/?topic=AI")
+    assert resp.status_code == 200
+    assert "OpenAI launches a new coding tool" in resp.text
+    assert "Local council raises parking fees" not in resp.text
+
+
+def test_topic_and_section_combine(client, db_conn):
+    """R-112. EDITION-AND-UI.md §2.3: "Two chip rows, combinable." A topic
+    match in a section the user did NOT select must be excluded."""
+    _seed_article(db_conn, n=1, section="tech", title="Anthropic ships a model update")
+    _seed_article(db_conn, n=2, section="world_india", title="Anthropic policy debate in parliament")
+
+    resp = client.get("/?topic=AI&section=tech")
+    assert resp.status_code == 200
+    assert "Anthropic ships a model update" in resp.text
+    assert "Anthropic policy debate in parliament" not in resp.text

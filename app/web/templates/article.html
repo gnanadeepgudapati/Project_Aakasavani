@@ -1,14 +1,60 @@
 {% extends "base.html" %}
 {% block title %}{{ article.title }} - Aakasavani{% endblock %}
 {% block content %}
-<article class="article-full" data-url-hash="{{ article.url_hash.hex() }}">
-  <h1>{{ article.title }}</h1>
-  <p class="meta">{{ article.source }}</p>
-  {% if article.full_text %}
-  <div class="body">{{ article.full_text }}</div>
-  {% else %}
-  <p class="honest-floor">Couldn't retrieve the full text.
-    <a href="{{ article.canonical_url }}">Open at source</a>.</p>
-  {% endif %}
-</article>
+{# EDITION-AND-UI.md Part 3: the research panel is a right-docked side
+   panel, NOT a modal (§3.1) - article and panel are flex siblings here so
+   the article reflows to ~60% instead of being covered. Closed by default;
+   app.js adds "panel-open" only after an explicit click on #research-open -
+   see tests/test_article_view.py::test_research_panel_present_and_closed. #}
+<div class="article-layout">
+  <article class="article-full" data-url-hash="{{ article.url_hash.hex() }}">
+    <button type="button" id="research-open" class="research-open-btn">Research &raquo;</button>
+    <h1>{{ article.title }}</h1>
+    <p class="meta">{{ article.source }}</p>
+    {% if article.full_text %}
+    <div class="body">{{ article.full_text }}</div>
+    {% else %}
+    <p class="honest-floor">Couldn't retrieve the full text.
+      <a href="{{ article.canonical_url }}">Open at source</a>.</p>
+    {% endif %}
+  </article>
+
+  <aside id="research-panel" class="research-panel" aria-hidden="true">
+    <div id="panel-resize-handle" class="panel-resize-handle"></div>
+    <div class="panel-header">
+      <div class="panel-tabs" role="tablist">
+        <button type="button" data-tab="ask" class="tab active">Ask</button>
+        <button type="button" data-tab="timeline" class="tab">Timeline</button>
+        <button type="button" data-tab="explain" class="tab">Explain</button>
+      </div>
+      <button type="button" id="research-close" class="research-close-btn" aria-label="Close research panel">&times;</button>
+    </div>
+
+    <div class="panel-body">
+      {# Ask tab - EDITION-AND-UI.md §3.2: summarise button, seeded starter
+         questions (lazy, §3.3), free-form input. #}
+      <div data-tab-panel="ask" class="tab-panel">
+        <button type="button" id="summarise-btn" class="summarise-btn">Summarise this article</button>
+        <div id="starter-questions" class="starter-questions"></div>
+        <form id="ask-form" class="ask-form">
+          <input type="text" id="ask-input" placeholder="Ask about this article...">
+          <button type="submit">Ask</button>
+        </form>
+        <div id="ask-answer" class="ask-answer"></div>
+      </div>
+
+      {# Timeline tab - ARCHITECTURE.md Flow C, metadata only. #}
+      <div data-tab-panel="timeline" class="tab-panel" hidden>
+        <div id="timeline-results" class="timeline-results">Open this tab to load the timeline.</div>
+      </div>
+
+      {# Explain tab - sends ONLY the highlighted selection, never full_text. #}
+      <div data-tab-panel="explain" class="tab-panel" hidden>
+        <p class="hint">Highlight some text in the article, then click Explain.</p>
+        <button type="button" id="explain-btn">Explain selection</button>
+        <div id="explain-result" class="explain-result"></div>
+      </div>
+    </div>
+  </aside>
+</div>
 {% endblock %}

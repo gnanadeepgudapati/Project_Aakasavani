@@ -1,16 +1,38 @@
 {% extends "base.html" %}
 
 {% block chips %}
-<nav class="chips">
-  <a href="/" class="chip {{ 'active' if not active_section }}">All</a>
+<nav class="chips section-chips">
+  <a href="/{% if active_topic %}?topic={{ active_topic }}{% endif %}"
+     data-section="" class="chip {{ 'active' if not active_section }}">All</a>
   {% for sec in all_sections %}
-  <a href="/?section={{ sec }}" class="chip {{ 'active' if active_section == sec }}">{{ sec.replace('_', ' & ') | title }}</a>
+  <a href="/?section={{ sec }}{% if active_topic %}&topic={{ active_topic }}{% endif %}"
+     data-section="{{ sec }}" class="chip {{ 'active' if active_section == sec }}">{{ sec.replace('_', ' & ') | title }}</a>
   {% endfor %}
+</nav>
+{# EDITION-AND-UI.md §2.3: a second, combinable chip row for topics. #}
+<nav class="chips topic-chips">
+  {% for t in topic_chips %}
+  <a href="{{ t.href }}" data-topic="{{ t.name }}" class="chip {{ 'active' if t.active }}">{{ t.name }}</a>
+  {% endfor %}
+  <details class="new-topic-toggle">
+    <summary class="chip new-topic-summary">+ new</summary>
+    <form method="post" action="/topics" class="new-topic-form">
+      <input type="text" name="name" placeholder="Topic name" required>
+      <input type="text" name="query" placeholder='FTS5 query, e.g. "AI" OR robot*' required>
+      <button type="submit">Add</button>
+    </form>
+  </details>
 </nav>
 {% endblock %}
 
 {% block content %}
+{% if active_topic %}
+<p class="topic-banner">Filtered by topic: <strong>{{ active_topic }}</strong>
+  &mdash; <a href="/{% if active_section %}?section={{ active_section }}{% endif %}">clear</a></p>
+{% endif %}
+
 {% for section, rows in sections.items() %}
+{% if rows %}
 <section class="section-block" data-section="{{ section }}">
   <h2>{{ section.replace('_', ' & ') | title }}</h2>
   {% for row in rows %}
@@ -21,6 +43,7 @@
     {% endif %}
   {% endfor %}
 </section>
+{% endif %}
 {% endfor %}
 
 {% if remainder %}

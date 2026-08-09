@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Search - Aakasavani{% endblock %}
+{% block content %}
+<h1 class="search-heading">Search your reads</h1>
+<form class="search-page-form" action="/search" method="get">
+  <input type="search" name="q" value="{{ query or '' }}"
+         placeholder="Search your reading history..." autofocus>
+  <button type="submit">Search</button>
+</form>
+
+{% if query %}
+  {% if results %}
+  <p class="search-count">{{ results|length }} result{{ 's' if results|length != 1 else '' }} for &ldquo;{{ query }}&rdquo;</p>
+  <div class="search-results">
+    {% for row in results %}
+    <article class="row thumb text-only">
+      <div class="row-body">
+        <a href="/article/{{ row.url_hash.hex() }}"><h3>{{ row.title }}</h3></a>
+        <span class="source">{{ row.source }}</span>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-state">No matches in your reading history for &ldquo;{{ query }}&rdquo;.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

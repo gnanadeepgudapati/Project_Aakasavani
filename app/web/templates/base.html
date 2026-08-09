@@ -10,6 +10,16 @@
 <header class="site-header">
   <a class="brand" href="/">Aakasavani</a>
   {% block chips %}{% endblock %}
+  <div class="header-controls">
+    <form class="search-form" action="/search" method="get" role="search">
+      <input type="search" name="q" placeholder="Search your reads..." aria-label="Search your reading history">
+    </form>
+    <div class="density-toggle" role="group" aria-label="Image density">
+      <button type="button" data-density-option="compact">Compact</button>
+      <button type="button" data-density-option="comfortable">Comfortable</button>
+      <button type="button" data-density-option="visual">Visual</button>
+    </div>
+  </div>
 </header>
 <main>
 {% block content %}{% endblock %}

@@ -1,7 +1,8 @@
 {# EDITION-AND-UI.md §6.3: one hero image on the section's LEAD story only. #}
 <article class="row hero {{ 'has-image' if row.image_url else 'text-only' }}">
   {% if row.image_url %}
-  <img class="hero-image" src="{{ row.image_url }}" alt="" loading="lazy">
+  <img class="hero-image" src="{{ row.image_url }}" alt="" loading="lazy"
+       onerror="this.closest('.row').classList.add('text-only'); this.remove();">
   {% endif %}
   <a href="/article/{{ row.url_hash.hex() }}"><h3>{{ row.title }}</h3></a>
   <p class="desc">{{ (row.description or '') | sanitize }}</p>

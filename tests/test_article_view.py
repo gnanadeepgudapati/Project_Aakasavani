@@ -1,4 +1,8 @@
-"""Step 09 acceptance tests. REQUIREMENTS.md R-059..R-061."""
+"""Step 09 acceptance tests. REQUIREMENTS.md R-059..R-061.
+
+Step 27 addition (plans/27-ui-completion.md, G-1): R-120 - the research
+panel's markup exists and is closed by default on every article view.
+"""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -75,3 +79,25 @@ def test_read_row_created(client, db_conn):
     client.get(f"/article/{URL_HASH_HEX}")
     count = db_conn.execute("SELECT COUNT(*) FROM read WHERE url_hash = ?", (URL_HASH,)).fetchone()[0]
     assert count == 1
+
+
+def test_research_panel_present_and_closed(client, db_conn):
+    """R-120. EDITION-AND-UI.md Part 3: a right-docked side panel (not a
+    modal) with Ask/Timeline/Explain tabs, present on every article view but
+    closed until the reader explicitly opens it - `.article-layout` must NOT
+    carry `panel-open` on initial render."""
+    _seed_prefetched(db_conn)
+
+    resp = client.get(f"/article/{URL_HASH_HEX}")
+    assert resp.status_code == 200
+    html = resp.text
+
+    assert 'id="research-panel"' in html
+    assert 'class="article-layout' in html
+    assert "panel-open" not in html.split('<script', 1)[0], (
+        "the panel must be closed by default - panel-open is a class app.js "
+        "adds only after the reader clicks the open button"
+    )
+    assert 'data-tab="ask"' in html
+    assert 'data-tab="timeline"' in html
+    assert 'data-tab="explain"' in html

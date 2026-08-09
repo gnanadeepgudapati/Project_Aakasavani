@@ -6,6 +6,50 @@ Things needed from the user. In autonomous mode this file replaces asking.
 
 ---
 
+## FINAL REPORT — 2026-08-09
+
+`AUTONOMOUS-LOOP.md` exit condition fired: **every `REQUIREMENTS.md` box is
+ticked with a passing verify.** Written per that document's format.
+
+### What shipped
+
+All 88 requirements, steps 01–19 — the entire currently-planned scope.
+Steps 01–09 ("the product," `ARCHITECTURE.md` §8) through step 19 (search),
+including the full research panel (Ask/Timeline/Explain), budget wrapper,
+Internet Archive queue, TTL sweep, backups, and top-up job. All 19 Ten Rules
+tests individually demonstrated catching a real violation (`plans/99-final-
+violation-pass.md`). Full suite: 92/92 green. 9 architectural decisions
+recorded (`logs/SESSIONS.md` S-001…S-008, plus this session's approval note).
+
+### What didn't ship, and why that's correct, not incomplete
+
+**Steps 20–22** (deep history, ranking, mobile) — `ROADMAP.md`'s own gate:
+"ship 01–09, live with it two weeks, then decide." No requirements exist for
+them; building them now would be opening a gate that isn't mine to open.
+
+**Nothing has run against real data.** The whole suite is fixture/mock-based
+by design (`ARCHITECTURE.md` §12.2) — correct for a test suite, but it means
+no one has watched a real 04:00 build run yet.
+
+### What's needed from you, in priority order
+
+1. **Nothing is required to keep the code correct** — it's fully tested as
+   it stands.
+2. **To actually run it**, in order of when each would first bite:
+   - **B-001/B-003 resolved**: dev is Python 3.14 (verified working). Deploy
+     target is still an open, low-stakes choice — install 3.14 on the VPS,
+     or pin to Ubuntu 24.04's system 3.12 there (untested on 3.12 so far).
+   - **B-002**: `ANTHROPIC_API_KEY` (paid, ~$5-6/mo) is the only credential
+     the *code* needs to actually answer a research-panel question for real.
+     `IA_S3_ACCESS_KEY`/`SECRET`, `GUARDIAN_API_KEY` are free but also unset.
+   - **B-004**: 7 of the 35 frozen feeds were unreachable at the step-01
+     audit. Still true, still not substituted, per `SOURCES.md` §1.
+3. **A decision, not a requirement**: whether/when to deploy and start
+   living with it, per `ROADMAP.md`'s two-week suggestion before considering
+   steps 20+.
+
+---
+
 ## OPEN
 
 ### B-004 · 7 of the 35 frozen feeds are unreachable — step 01 audit result

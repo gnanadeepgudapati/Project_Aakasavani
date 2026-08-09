@@ -24,18 +24,23 @@ Runs on every verify, forever, regardless of which step is in progress.
 Mapping: `ARCHITECTURE.md` §12.1. Rulings D-1/D-2 (`logs/SESSIONS.md` S-006)
 already folded into R-002, R-003, R-010.
 
-**Written at step 03 (2026-08-09); most closed later, as their steps land.**
-Every test does its own lazy import inside the function body, so a rule test
-whose target module doesn't exist yet fails cleanly for that reason alone —
-legitimate "red before any feature exists" (`ARCHITECTURE.md` §8), not a
-collection error blocking the other 18. R-001/R-007/R-014/R-016/R-019 are
-ticked now because they're either self-contained (config values, installed
-packages — genuinely demonstrated catching a real violation, not vacuous) or
-their underlying mechanism is proven against synthetic fixtures
-(`test_static_analysis_helper_catches_a_real_case`, which itself caught and
-led to fixing a real relative-import resolution bug). The rest tick as their
-dependent step lands; **all 19 get a final violation-demonstration pass once
-the whole build is done** — see `plans/03-rules.md`.
+**Written at step 03 (2026-08-09); all 19 closed by 2026-08-09 as their
+dependent steps landed.** Every test does its own lazy import inside the
+function body, so a rule test whose target module didn't exist yet failed
+cleanly for that reason alone — legitimate "red before any feature exists"
+(`ARCHITECTURE.md` §8), not a collection error blocking the other 18.
+
+**All 19 have now been individually demonstrated catching a real violation**
+— the real implementation broken in the specific way the rule guards
+against, confirmed red for the right reason, restored, confirmed green
+again. Five were demonstrated at step 03 itself (R-001, R-007 against
+synthetic fixtures via `test_static_analysis_helper_catches_a_real_case` —
+which itself caught and led to fixing a real relative-import resolution bug
+— plus R-014/R-016/R-019, self-contained from day one). The other 14 closed
+incrementally as steps 04–19 landed, and the remaining 13 were formally
+violation-demonstrated in one final pass on 2026-08-09 once the whole build
+was done — `git diff --stat` confirmed a clean tree after every break was
+restored, and the full suite (92 tests) was green both before and after.
 
 - [x] R-001  Rule 1 — no Anthropic client reachable from feed/article render (static)
       verify: pytest tests/test_rules.py::test_no_llm_import_in_render_path

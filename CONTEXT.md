@@ -2,68 +2,74 @@
 
 **Read this first, every session. Rewritten each session, never appended.**
 
-Last updated: 2026-08-09 — supervised build (Prompt 2), step 01 complete
+Last updated: 2026-08-09 — build session complete through step 19
 
 ---
 
 ## Where the project is
 
-**Planning approved. Step 01 (feed audit) done and green. Steps 02–03 next.**
+**All 88 requirements across steps 01–19 are closed. All 19 Ten Rules tests
+individually demonstrated catching a real violation. Full suite: 92/92
+green.** This is the entire currently-planned scope of `REQUIREMENTS.md`.
 
-Repo is on GitHub: `github.com/gnanadeepgudapati/Project_Aakasavani`, `main`,
-pushed and tracked. Dev environment is Python 3.14.3 in `.venv/` (see
-`logs/SESSIONS.md` S-005 — measured working, not assumed).
+Repo: `github.com/gnanadeepgudapati/Project_Aakasavani`, `main`, pushed and
+tracked, one commit per step.
 
 ## What exists
 
-| Path | State |
+The whole app, working end to end against fixtures/mocks:
+
+| Area | Modules |
 |---|---|
-| `CLAUDE.md`, `docs/` × 5 | Binding rules + specs. Patched several times this session — see `logs/SESSIONS.md` |
-| `REQUIREMENTS.md` | 88 requirements + 19 Ten-Rules, all with `verify:`. **4/88 ticked** (step 01) |
-| `plans/00-implementation-plan.md` | Approved |
-| `plans/01-feed-audit.md` | Done |
-| `BLOCKED.md` | 2 open (B-003 deploy-only, non-blocking; B-004 — 7/35 feeds unreachable, non-blocking). B-001, B-002 resolved/tracked |
-| `logs/SESSIONS.md` | S-001…S-006 — see below |
-| `.venv/` | Python 3.14.3, `feedparser`/`pyyaml`/`pytest`/`ruff` installed. Gitignored |
-| `pyproject.toml` | Deps + pytest config. `app` package registered |
-| `app/__init__.py`, `app/config.py`, `app/registry.py` | Minimal — just enough for `import app` and to load/validate `data/feeds.yaml` |
-| `data/feeds.yaml` | **The 35 frozen feeds**, audited. 28 reachable, 7 down (`BLOCKED.md` B-004) |
-| `scripts/audit_feeds.py` | Run once already. Re-run only if a feed's format changes |
-| `tests/test_registry.py` | R-020…R-023, all green |
-| `.env.example` | Committed, empty values |
+| Registry, schema | `app/registry.py`, `app/db.py`, `app/migrations/*.sql` (3 migrations) |
+| Ingest | `app/ingest/{canonical,parser,dedupe}.py` |
+| Networking | `app/net/{limiter,robots,fetcher}.py`, `app/extract/article.py` |
+| Edition | `app/edition/{select,build,swap}.py` |
+| Web (reading) | `app/web/{main,deps,routes,sanitize}.py` + templates + static |
+| Web (research) | `app/web/research_routes.py`, `app/research/{client,budget,timeline,explain}.py` |
+| Topics, search | `app/topics.py`, `app/search.py` |
+| Background jobs | `app/jobs/{sweep,backup,topup}.py`, `app/ia/queue.py` |
 
-**Not created yet:** `tests/conftest.py`, `tests/test_rules.py`, `fixtures/` —
-steps 02 and 03.
+`tests/` has one file per step (19 test files, 92 tests), plus
+`tests/test_rules.py` (the Ten Rules oracle, 20 tests incl. the
+static-analysis self-test) and `tests/conftest.py`/`tests/_static_analysis.py`
+(harness).
 
-## What is decided (`logs/SESSIONS.md` S-001…S-006)
+## What is decided
 
-1. Sections = 3: `tech` · `finance` · `world_india`
-2. Ingest = RSS only, 35 frozen feeds
-3. Front page = 13/section × 3 = 39 (~40)
-4. Research panel = Haiku 4.5 only, no Sonnet tier
-5. Fixed 3 broken doc cross-refs + the "ship line" (01–09, not "1–5") + Python
-   stack recorded as 3.14 dev
-6. D-1 Rule 1 verbatim scopes to storage not render; D-2 Rule 6 names
-   `/research/*` as the sole network exception; D-3 robots disallow blocks
-   Wayback too; D-4 deleted the stale 15-min ingest worker
+`logs/SESSIONS.md` S-001 through S-008 — sections/ingest-scope/front-page-size/
+model (planning session), then mid-build: S-005 (doc cross-refs, ship line,
+Python stack), S-006 (D-1..D-4 rulings), S-007 (schema gap: `seen.full_text`
+for pre-fetch, not `read`), S-008 (Rule 6 scopes to front-page articles;
+"show everything" fetches on click by design).
 
-## What is next
+## What is NOT done, and why
 
-Steps 02 (fixtures + harness) and 03 (`tests/test_rules.py`) — the oracle.
-Both must be demonstrated, not just built: for step 03 specifically, each rule
-test must be shown catching a real violation (break it, watch red, restore)
-before it counts, per Prompt 2. **Stop after step 03. Do not continue to 04**
-until the user has watched this and autonomous mode is explicitly authorized.
+**Steps 20–22 (deep history, ranking, mobile) are deliberately unplanned.**
+`ROADMAP.md`: "Ship steps 01–09 and live with it for two weeks before
+building anything below." No `REQUIREMENTS.md` entries exist for them —
+adding requirements for an unplanned step would itself be a "wish with no
+verify," the exact thing `REQUIREMENTS.md` forbids. This isn't something left
+undone; it's the project's own explicit gate, not mine to open.
 
-## Known, non-blocking issue
+**The app has never been run against real data.** Every test uses fixtures
+or injected fakes — genuinely correct per `ARCHITECTURE.md` §12.2 ("tests
+never touch the network"), but it means nobody has watched a real 04:00
+build produce a real edition from the real 35 feeds yet. See `BLOCKED.md`
+for what's needed to do that (mainly: a Python-version decision for
+deployment, and credentials — all optional, none block the code as it
+stands).
 
-7 of the 35 frozen feeds are currently unreachable (403/404/malformed) —
-`BLOCKED.md` B-004. Not fixed, not substituted, per `SOURCES.md` §1. Revisit
-once the front page (step 07) is real and its variety can be judged.
+## Known, non-blocking issues carried from earlier steps
+
+- `BLOCKED.md` B-003 — deploy-time Python version (3.14 dev vs 3.12 prod Ubuntu). Not urgent.
+- `BLOCKED.md` B-004 — 7 of 35 frozen feeds were unreachable at the step-01 audit (2026-08-09). Not fixed, not substituted, per `SOURCES.md` §1.
 
 ## Where I left off
 
-Step 01 fully green, committed, pushed. About to write `plans/02-fixtures.md`.
+Everything committed and pushed through the step-99 violation-demonstration
+pass. See `BLOCKED.md` for the final report and what's needed to go from
+"tested" to "actually running."
 
 ## Session-start ritual
 

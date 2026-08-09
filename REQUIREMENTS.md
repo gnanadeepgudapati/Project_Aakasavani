@@ -41,11 +41,11 @@ the whole build is done** — see `plans/03-rules.md`.
       verify: pytest tests/test_rules.py::test_no_llm_import_in_render_path
       (passes vacuously until app.web.routes exists, step 08 — the walker itself is
       proven against synthetic violations by test_static_analysis_helper_catches_a_real_case)
-- [ ] R-002  Rule 1 — `seen.description` verbatim from parser at storage
+- [x] R-002  Rule 1 — `seen.description` verbatim from parser at storage
       verify: pytest tests/test_rules.py::test_stored_description_is_verbatim
 - [ ] R-003  Rule 1 — sanitiser strips markup, never rewords
       verify: pytest tests/test_rules.py::test_render_sanitisation_only_removes_markup
-- [ ] R-004  Rule 2 — one story across 6 feeds yields 6 rows, not 1
+- [x] R-004  Rule 2 — one story across 6 feeds yields 6 rows, not 1
       verify: pytest tests/test_rules.py::test_six_outlets_six_entries
 - [x] R-005  Rule 3 — `read.full_text` identical to extractor output, no post-processing
       verify: pytest tests/test_rules.py::test_stored_text_equals_extractor_output
@@ -161,21 +161,21 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 06 — Feed parser + dedupe
 
-- [ ] R-042  `<content:encoded>` extracted when present
+- [x] R-042  `<content:encoded>` extracted when present
       verify: pytest tests/test_parser.py::test_content_encoded
-- [ ] R-043  Absent `<content:encoded>` yields `None`, not `AttributeError`
+- [x] R-043  Absent `<content:encoded>` yields `None`, not `AttributeError`
       verify: pytest tests/test_parser.py::test_missing_content_encoded
-- [ ] R-044  Malformed feed XML does not crash the parser
+- [x] R-044  Malformed feed XML does not crash the parser
       verify: pytest tests/test_parser.py::test_malformed_xml_survives
-- [ ] R-045  Empty feed (valid XML, zero items) yields zero items, not an error
+- [x] R-045  Empty feed (valid XML, zero items) yields zero items, not an error
       verify: pytest tests/test_parser.py::test_empty_feed
-- [ ] R-046  Canonicalisation strips `utm_*`/`fbclid`/fragment
+- [x] R-046  Canonicalisation strips `utm_*`/`fbclid`/fragment
       verify: pytest tests/test_parser.py::test_canonicalise_strips_tracking
-- [ ] R-047  Same URL with different tracking params hashes identically
+- [x] R-047  Same URL with different tracking params hashes identically
       verify: pytest tests/test_parser.py::test_tracking_params_do_not_change_hash
-- [ ] R-048  A hash already in `seen` is skipped, not re-inserted
+- [x] R-048  A hash already in `seen` is skipped, not re-inserted
       verify: pytest tests/test_parser.py::test_duplicate_is_skipped
-- [ ] R-049  Description fallback order: `<description>` → og:description → twitter:description → body prefix → headline
+- [x] R-049  Description fallback order: `<description>` → og:description → twitter:description → body prefix → headline
       verify: pytest tests/test_parser.py::test_description_fallback_order
 
 ## Step 07 — Edition build job
@@ -309,8 +309,8 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-31 / 88 (steps 01–19) ticked — steps 01–05 complete (9/19 Ten Rules genuinely
-closed; 10 pending their dependent steps + a final violation-demonstration
+41 / 88 (steps 01–19) ticked — steps 01–06 complete (11/19 Ten Rules genuinely
+closed; 8 pending their dependent steps + a final violation-demonstration
 pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

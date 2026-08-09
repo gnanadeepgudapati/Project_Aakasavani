@@ -32,9 +32,42 @@ above only because a `.env.example` should be committed alongside it.
 
 ### B-001 · Python version — spec says 3.12, machine has 3.14.3 and 3.13
 
+> **RESOLVED 2026-08-08 — NOT A BLOCKER. I was wrong.**
+>
+> The concern below was that `lxml` would have no prebuilt wheel for 3.14 and
+> would try to compile from source. **Tested empirically instead of assumed:**
+> the whole stack installs from binary wheels on 3.14.3 and runs.
+>
+> ```
+> python 3.14.3 | lxml 6.1.1 | trafilatura 2.2.0
+>               | feedparser 6.0.14 | fastapi 0.141.1
+>
+> content:encoded extracted        OK
+> absent content -> getattr None   OK
+> malformed XML survived (bozo=1)  OK, 1 entry, no crash
+> extraction with images           OK, 803 chars, <img> preserved
+> paywall stub -> 18 chars         OK, correctly <500 = failure
+> ```
+>
+> Python 3.14 has been released long enough that the ecosystem caught up. My
+> assumption about wheel availability was simply out of date.
+>
+> **Step 01 is unblocked and can run today on 3.14.**
+>
+> **One much smaller question remains, and it is a *deployment* decision, not a
+> build one:** Ubuntu 24.04's system Python is 3.12, so dev-on-3.14 /
+> prod-on-3.12 is a version drift. Options at deploy time: install 3.14 on the
+> VPS (deadsnakes/pyenv), or pin the venv to 3.12 there. Nothing in steps 01-21
+> depends on which. **Do not block the build on it.**
+>
+> **Needs from user:** approval to record the stack as 3.14 (dev) with the prod
+> version deferred to deployment, patching `CLAUDE.md` § Stack and logging
+> S-005. `CLAUDE.md` forbids changing the stack silently, so it is not changed
+> until approved. Meanwhile 3.14 is what runs.
+
 **Raised:** 2026-08-08, planning session
-**Blocks:** 01, and therefore everything
-**Status:** needs a decision before any code runs
+**Blocked:** 01, and therefore everything
+**Status:** RESOLVED by measurement. Retained below for the reasoning trail.
 
 `CLAUDE.md` § Stack pins **Python 3.12**. `py --list` reports only:
 

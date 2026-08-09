@@ -441,7 +441,7 @@ Also needed, but from you as reviewer rather than as inputs:
 
 | # | Risk | Severity | Handling |
 |---|---|---|---|
-| **R-1** | **Python 3.12 not installed.** Real risk is compiled wheels (`lxml` via Trafilatura), not syntax. Source builds need MSVC and usually fail on Windows | **High** | `BLOCKED.md` B-001 |
+| **R-1** | ~~Python 3.12 not installed; `lxml` wheels may be missing on 3.14~~ **RETIRED — tested, not a risk.** lxml 6.1.1 / trafilatura 2.2.0 / feedparser 6.0.14 / fastapi 0.141.1 all install as binary wheels on 3.14.3 and run correctly | ~~High~~ **None** | `BLOCKED.md` B-001. Residual: dev 3.14 vs prod 3.12 drift, a deploy-time decision only |
 | **R-2** | **Dev is Windows, prod is Ubuntu.** Paths, `cron` absent, `sqlite3` CLI absent, file locking differs. `.backup` via CLI won't exist locally | Medium | Use `pathlib` everywhere; backup via `sqlite3` **module** `.backup()` API, not the CLI; keep cron out of app code (step 12 ships a callable, cron just calls it) |
 | **R-3** | **Console is cp1252.** Already hit this session — printing `│` crashed Python. Will recur in any script that prints feed titles | Medium | `PYTHONIOENCODING=utf-8`; always `encoding='utf-8'` on `open()`; never rely on locale default |
 | **R-4** | **`~120 feeds` storage projection.** §3 projects 292k `seen` rows/yr from ~120 feeds. With 35 the real figure is ~300–500/day | Low | Projection is now conservative. No action; noted so nobody "fixes" the arithmetic later |
@@ -472,6 +472,19 @@ step 03.
 literally leaves three options and all three break something: escape it (reader
 sees `&lt;p&gt;`), mark it `|safe` (injects publisher HTML and a tracking pixel
 into my page), or strip tags (no longer byte-for-byte).
+
+**Measured 2026-08-08 — it is worse than that. "Byte-for-byte" is already
+impossible at the parse layer**, before rendering is even reached:
+
+```
+RSS on the wire :  Outlet blurb &amp; entity &lt;b&gt;markup&lt;/b&gt;
+feedparser gives:  Outlet blurb & entity <b>markup</b>
+```
+
+feedparser decodes HTML entities itself. The bytes it hands you are not the
+bytes in the feed, and what comes back contains live markup. No implementation
+can satisfy the rule as written — not by choice of renderer, not by choice of
+parser.
 
 **I propose the test asserts storage, not rendering:** `seen.description` is
 byte-for-byte identical to the feed. Rendering applies a tag allowlist, and a

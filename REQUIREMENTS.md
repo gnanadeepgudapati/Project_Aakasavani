@@ -243,11 +243,11 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 13 — Past editions
 
-- [ ] R-072  `/edition/YYYY-MM-DD` serves that date's edition
+- [x] R-072  `/edition/YYYY-MM-DD` serves that date's edition
       verify: pytest tests/test_past_editions.py::test_edition_by_date
-- [ ] R-073  An unknown date returns 404, not a 500 or an empty page
+- [x] R-073  An unknown date returns 404, not a 500 or an empty page
       verify: pytest tests/test_past_editions.py::test_unknown_date_404
-- [ ] R-074  `/` always serves the most recent `live` edition
+- [x] R-074  `/` always serves the most recent `live` edition
       verify: pytest tests/test_past_editions.py::test_root_serves_latest_live
 
 ## Step 14 — Budget wrapper
@@ -310,7 +310,7 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-74 / 88 (steps 01–19) ticked — steps 01–12 complete. **All 19 Ten Rules
+77 / 88 (steps 01–19) ticked — steps 01–13 complete. **All 19 Ten Rules
 tests now pass naturally** — every dependent module exists. A final
 violation-demonstration pass (breaking each real implementation, confirming
 red, restoring) is still owed for the 13 not yet individually demonstrated —

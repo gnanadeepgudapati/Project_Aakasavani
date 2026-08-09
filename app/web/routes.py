@@ -79,7 +79,14 @@ def _render_edition(request: Request, conn, edition, section_filter: str | None)
         )
 
     sections = _edition_sections(conn, edition["id"], section_filter)
-    remainder = _remainder(conn, edition["id"]) if section_filter is None else []
+
+    # "Show everything" is the current full ingest beyond TODAY's front
+    # page - it doesn't make sense attached to a past (superseded) edition,
+    # where it would mix in articles that didn't exist yet on that date.
+    # Caught by test_edition_by_date: browsing a past date was leaking a
+    # later article into its remainder section.
+    show_remainder = section_filter is None and edition["status"] == "live"
+    remainder = _remainder(conn, edition["id"]) if show_remainder else []
     return templates.TemplateResponse(
         request,
         "index.html",

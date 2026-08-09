@@ -74,7 +74,7 @@ the whole build is done** — see `plans/03-rules.md`.
 - [x] R-016  Rule 8 — no evasion dependency importable (static)
       verify: pytest tests/test_rules.py::test_no_evasion_dependencies
       (demonstrated catching a simulated selenium install, 2026-08-09)
-- [ ] R-017  Rule 9 — `read` schema has `read_at` and `dwell_seconds`, both writable
+- [x] R-017  Rule 9 — `read` schema has `read_at` and `dwell_seconds`, both writable
       verify: pytest tests/test_rules.py::test_read_schema_has_dwell_columns
 - [ ] R-018  Rule 9 — opening then leaving an article writes non-null `dwell_seconds`
       verify: pytest tests/test_rules.py::test_article_view_writes_dwell
@@ -127,15 +127,15 @@ See "Ten Rules" above — R-001…R-019.
 Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 `ARCHITECTURE.md` §3 draft).
 
-- [ ] R-028  Migrations apply cleanly and re-applying is a no-op
+- [x] R-028  Migrations apply cleanly and re-applying is a no-op
       verify: pytest tests/test_schema.py::test_migrations_idempotent
-- [ ] R-029  WAL, foreign_keys=ON, busy_timeout=5000 all set on connect
+- [x] R-029  WAL, foreign_keys=ON, busy_timeout=5000 all set on connect
       verify: pytest tests/test_schema.py::test_pragmas_applied
-- [ ] R-030  `read_fts`/`seen_fts` stay in sync across insert, update, delete
+- [x] R-030  `read_fts`/`seen_fts` stay in sync across insert, update, delete
       verify: pytest tests/test_schema.py::test_fts_stays_in_sync_on_insert_update_delete
-- [ ] R-031  `edition_items.url_hash` FK to a nonexistent edition is rejected
+- [x] R-031  `edition_items.url_hash` FK to a nonexistent edition is rejected
       verify: pytest tests/test_schema.py::test_edition_items_fk_enforced
-- [ ] R-032  A `section` outside {tech, finance, world_india} is rejected at write
+- [x] R-032  A `section` outside {tech, finance, world_india} is rejected at write
       verify: pytest tests/test_schema.py::test_section_check_constraint
 
 ## Step 05 — Rate limiter + fetcher
@@ -309,8 +309,8 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-13 / 88 (steps 01–19) ticked — steps 01–02 complete, step 03 written
-(5/19 Ten Rules genuinely closed now, 14 pending their dependent steps + a
-final violation-demonstration pass). 19 Ten-Rules requirements are
+19 / 88 (steps 01–19) ticked — steps 01–04 complete (6/19 Ten Rules genuinely
+closed; 13 pending their dependent steps + a final violation-demonstration
+pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

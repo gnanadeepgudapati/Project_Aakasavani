@@ -252,15 +252,15 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 14 — Budget wrapper
 
-- [ ] R-075  The cap check raises `BudgetExceeded` *before* the API call, not after
+- [x] R-075  The cap check raises `BudgetExceeded` *before* the API call, not after
       verify: pytest tests/test_budget.py::test_raises_before_calling
-- [ ] R-076  A single call estimated above $0.10 is refused
+- [x] R-076  A single call estimated above $0.10 is refused
       verify: pytest tests/test_budget.py::test_single_call_cap
-- [ ] R-077  Cumulative daily spend above $2.00 is refused
+- [x] R-077  Cumulative daily spend above $2.00 is refused
       verify: pytest tests/test_budget.py::test_daily_cap
-- [ ] R-078  Cumulative monthly spend above $25.00 is refused
+- [x] R-078  Cumulative monthly spend above $25.00 is refused
       verify: pytest tests/test_budget.py::test_monthly_cap
-- [ ] R-079  A budget breach degrades the panel only — reading path unaffected
+- [x] R-079  A budget breach degrades the panel only — reading path unaffected
       verify: pytest tests/test_budget.py::test_breach_does_not_break_reading
 
 ## Step 15 — Research panel: Ask tab
@@ -310,7 +310,7 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-77 / 88 (steps 01–19) ticked — steps 01–13 complete. **All 19 Ten Rules
+82 / 88 (steps 01–19) ticked — steps 01–14 complete. **All 19 Ten Rules
 tests now pass naturally** — every dependent module exists. A final
 violation-demonstration pass (breaking each real implementation, confirming
 red, restoring) is still owed for the 13 not yet individually demonstrated —

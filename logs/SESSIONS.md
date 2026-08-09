@@ -23,6 +23,37 @@ that produced S-001…S-004.
 
 ---
 
+## 2026-08-09 · Build session, step 07 (edition build job)
+
+### S-007 · `seen` gets `full_text`/`fetched_via`; pre-fetched text does not go in `read`
+
+**Decided:** front-page pre-fetched text is stored on `seen.full_text` /
+`seen.fetched_via` (migration `002_seen_prefetch.sql`), populated only for
+the ~39 front-page items. `read` gains a row only when the user actually
+opens an article, exactly as before.
+
+**Replaces:** nothing explicit — this is a genuine gap the original §3 draft
+and `plans/00-implementation-plan.md` §2 both missed, surfaced while
+implementing step 07's pre-fetch phase, not a contradiction between docs.
+
+**Reasoning:** `EDITION-AND-UI.md` §1.3 says pre-fetched text is "already in
+SQLite" before the user opens it — but `read` is defined as **permanent** and
+"what you actually opened" (`CLAUDE.md` Rule 5, `ARCHITECTURE.md` §3). Writing
+full text into `read` for all ~39 front-page articles regardless of whether
+they're ever opened would be exactly the "permanent archive of unread
+articles" `ROADMAP.md` rules out explicitly, and would make `dwell_seconds`/
+`read_at` meaningless placeholders for rows nobody read. `seen` already
+expires in 30 days and Rule 5 already establishes it holds text that later
+gets stripped ("TTL the firehose... text stripped") — extending that same
+row with pre-fetched full text keeps the cache naturally bounded by the
+existing TTL, with no new eviction mechanism needed. The daily sweep now
+also nulls `full_text`/`fetched_via` alongside the existing stripped columns.
+
+**Docs patched:** `ARCHITECTURE.md` §3 (`seen` schema), §10 (sweep SQL, both
+copies — there were two, only one was originally caught and fixed).
+
+---
+
 ### S-006 · Rulings on D-1 through D-4
 
 **D-1 — Rule 1 "byte-for-byte" scopes to storage, not render.** Measured

@@ -49,7 +49,7 @@ the whole build is done** — see `plans/03-rules.md`.
       verify: pytest tests/test_rules.py::test_six_outlets_six_entries
 - [x] R-005  Rule 3 — `read.full_text` identical to extractor output, no post-processing
       verify: pytest tests/test_rules.py::test_stored_text_equals_extractor_output
-- [ ] R-006  Rule 4 — the 04:00 build calls Anthropic zero times
+- [x] R-006  Rule 4 — the 04:00 build calls Anthropic zero times
       verify: pytest tests/test_rules.py::test_build_makes_zero_llm_calls
 - [x] R-007  Rule 4 — no Anthropic import reachable from the build path (static)
       verify: pytest tests/test_rules.py::test_no_llm_import_in_build_path
@@ -60,9 +60,9 @@ the whole build is done** — see `plans/03-rules.md`.
       verify: pytest tests/test_rules.py::test_read_rows_never_expire
 - [ ] R-010  Rule 6 — reading routes make no outbound HTTP; `/research/*` is the sole exception
       verify: pytest tests/test_rules.py::test_no_network_on_reading_path
-- [ ] R-011  Rule 7 — a build that raises mid-way leaves the previous edition live
+- [x] R-011  Rule 7 — a build that raises mid-way leaves the previous edition live
       verify: pytest tests/test_rules.py::test_failed_build_keeps_previous_edition
-- [ ] R-012  Rule 7 — a failure inside the swap transaction leaves zero partial rows
+- [x] R-012  Rule 7 — a failure inside the swap transaction leaves zero partial rows
       verify: pytest tests/test_rules.py::test_swap_is_atomic
 - [x] R-013  Rule 8 — two callers on one domain are enforced ≥1s apart, one shared instance
       verify: pytest tests/test_rules.py::test_rate_limiter_is_shared_and_enforced
@@ -180,13 +180,13 @@ Schema in `plans/00-implementation-plan.md` §2 (12 changes from the
 
 ## Step 07 — Edition build job
 
-- [ ] R-050  13 articles selected per section
+- [x] R-050  13 articles selected per section
       verify: pytest tests/test_edition.py::test_selects_13_per_section
-- [ ] R-051  Ranking is recency, tie-broken by `feeds.source_weight`
+- [x] R-051  Ranking is recency, tie-broken by `feeds.source_weight`
       verify: pytest tests/test_edition.py::test_ranking_recency_then_weight
-- [ ] R-052  Every front-page item has full text pre-fetched before swap
+- [x] R-052  Every front-page item has full text pre-fetched before swap
       verify: pytest tests/test_edition.py::test_every_front_page_item_prefetched
-- [ ] R-053  `editions.status` flips to `live` only after full success
+- [x] R-053  `editions.status` flips to `live` only after full success
       verify: pytest tests/test_edition.py::test_swap_only_on_success
 
 ## Step 08 — Feed view
@@ -309,8 +309,8 @@ decide." No `plans/NN-*.md` exists for these yet, so no requirements are listed
 
 ## Progress
 
-41 / 88 (steps 01–19) ticked — steps 01–06 complete (11/19 Ten Rules genuinely
-closed; 8 pending their dependent steps + a final violation-demonstration
+48 / 88 (steps 01–19) ticked — steps 01–07 complete (14/19 Ten Rules genuinely
+closed; 5 pending their dependent steps + a final violation-demonstration
 pass). 19 Ten-Rules requirements are
 step-03 scope and count toward the same total. Steps 20–22 excluded from the
 denominator until planned.

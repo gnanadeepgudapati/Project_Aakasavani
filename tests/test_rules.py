@@ -177,8 +177,10 @@ def test_sweep_strips_text_keeps_hash(db_conn, frozen_clock):
     expired_at = int(frozen_clock.now().timestamp()) - 1
     db_conn.execute(
         "INSERT INTO seen (url_hash, canonical_url, title, source, section, "
-        "published_at, description, first_seen, expires_at, expired) "
-        "VALUES (?, 'https://x.test/a', 'T', 'S', 'tech', 1, 'D', 1, ?, 0)",
+        "published_at, description, full_text, fetched_via, first_seen, "
+        "expires_at, expired) "
+        "VALUES (?, 'https://x.test/a', 'T', 'S', 'tech', 1, 'D', "
+        "'pre-fetched front-page text', 'live', 1, ?, 0)",
         (b"\x01" * 32, expired_at),
     )
     db_conn.commit()
@@ -186,12 +188,15 @@ def test_sweep_strips_text_keeps_hash(db_conn, frozen_clock):
     sweep_expired_seen(db_conn, now=frozen_clock.now())
 
     row = db_conn.execute(
-        "SELECT title, description, source, expired FROM seen WHERE url_hash = ?",
+        "SELECT title, description, source, full_text, fetched_via, expired "
+        "FROM seen WHERE url_hash = ?",
         (b"\x01" * 32,),
     ).fetchone()
     assert row["title"] is None
     assert row["description"] is None
     assert row["source"] is None
+    assert row["full_text"] is None, "migration 002 (S-007): pre-fetched text must be stripped too"
+    assert row["fetched_via"] is None
     assert row["expired"] == 1
 
 

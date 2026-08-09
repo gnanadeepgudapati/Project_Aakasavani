@@ -224,6 +224,11 @@ CREATE TABLE seen (
   published_at  INTEGER,               -- unix seconds
   description   TEXT,                  -- outlet's own words
   section       TEXT,                  -- tech | finance | world_india
+  full_text     TEXT,                  -- front-page items only; pre-fetched
+                                        -- at 04:00, NULL for the rest (fetched
+                                        -- on click). TTL'd with the row - see
+                                        -- migration 002, logs/SESSIONS.md S-007
+  fetched_via   TEXT,                  -- feed | live | wayback, when full_text set
   first_seen    INTEGER NOT NULL,
   expires_at    INTEGER NOT NULL,
   expired       INTEGER DEFAULT 0      -- 1 = text stripped, hash kept
@@ -290,12 +295,13 @@ CREATE TABLE ia_queue (
 
 ```sql
 UPDATE seen
-   SET title = NULL, description = NULL, source = NULL, expired = 1
+   SET title = NULL, description = NULL, source = NULL,
+       full_text = NULL, fetched_via = NULL, expired = 1
  WHERE expires_at < unixepoch() AND expired = 0;
 ```
 
-Text is stripped; the hash survives. You permanently remember having seen an
-article for ~32 bytes.
+Text is stripped (including any pre-fetched `full_text` - migration 002); the
+hash survives. You permanently remember having seen an article for ~32 bytes.
 
 ### Storage projection
 
@@ -526,7 +532,8 @@ expires_at = unixepoch() + 2592000        -- 30 days
 
 -- daily sweep (cron): strip text, keep the hash forever
 UPDATE seen
-   SET title = NULL, description = NULL, source = NULL, expired = 1
+   SET title = NULL, description = NULL, source = NULL,
+       full_text = NULL, fetched_via = NULL, expired = 1
  WHERE expires_at < unixepoch() AND expired = 0;
 ```
 
